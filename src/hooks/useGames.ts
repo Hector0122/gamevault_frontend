@@ -1,6 +1,30 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
 import type { DashboardStats, Game, IGDBGameResult, UserGame } from '../types';
+
+const cache = createMMKV({ id: 'gamevault_cache' });
+
+const CACHE_LIBRARY = 'cache_library';
+const CACHE_DASHBOARD = 'cache_dashboard';
+
+function loadCachedLibrary(): UserGame[] | null {
+  const raw = cache.getString(CACHE_LIBRARY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function saveCachedLibrary(games: UserGame[]) {
+  cache.set(CACHE_LIBRARY, JSON.stringify(games));
+}
+
+function loadCachedDashboard(): DashboardStats | null {
+  const raw = cache.getString(CACHE_DASHBOARD);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function saveCachedDashboard(stats: DashboardStats) {
+  cache.set(CACHE_DASHBOARD, JSON.stringify(stats));
+}
 
 const LIMIT = 20;
 
@@ -45,7 +69,6 @@ export function useSearch() {
       const data = await api.searchGames(currentQuery, results.length);
       setResults(prev => [...prev, ...data]);
     } catch {
-      // ignore errors when loading more
     } finally {
       setLoadingMore(false);
     }
@@ -55,18 +78,25 @@ export function useSearch() {
 }
 
 export function useLibrary() {
-  const [games, setGames] = useState<UserGame[]>([]);
+  const [games, setGames] = useState<UserGame[]>(() => loadCachedLibrary() ?? []);
   const [loading, setLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
-  async function fetchLibrary() {
+  const fetchLibrary = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.getLibrary();
       setGames(data);
+      saveCachedLibrary(data);
+      setIsOffline(false);
+    } catch {
+      const cached = loadCachedLibrary();
+      if (cached) setGames(cached);
+      setIsOffline(true);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   async function addToCollection(externalId: number, status = 'OWNED') {
     const game = await api.addGame(externalId);
@@ -94,22 +124,29 @@ export function useLibrary() {
     await fetchLibrary();
   }
 
-  return { games, loading, fetchLibrary, addToCollection, changeStatus, updateHours, updateNotes, removeGame };
+  return { games, loading, isOffline, fetchLibrary, addToCollection, changeStatus, updateHours, updateNotes, removeGame };
 }
 
 export function useDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(() => loadCachedDashboard());
   const [loading, setLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
-  async function fetchStats() {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.getDashboard();
       setStats(data);
+      saveCachedDashboard(data);
+      setIsOffline(false);
+    } catch {
+      const cached = loadCachedDashboard();
+      if (cached) setStats(cached);
+      setIsOffline(true);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  return { stats, loading, fetchStats };
+  return { stats, loading, isOffline, fetchStats };
 }

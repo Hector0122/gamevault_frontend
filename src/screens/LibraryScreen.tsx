@@ -38,7 +38,7 @@ function Stars({ rating, onPress }: { rating: number; onPress?: (r: number) => v
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { games, loading, fetchLibrary, changeStatus, updateHours, updateNotes, removeGame } = useLibrary();
+  const { games, loading, isOffline, fetchLibrary, changeStatus, updateHours, updateNotes, removeGame } = useLibrary();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<GameStatus | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
@@ -182,6 +182,14 @@ export default function LibraryScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
+
+      {isOffline && (
+        <View style={{ backgroundColor: '#f59e0b20', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 8, padding: 8, marginBottom: 12 }}>
+          <Text style={{ color: '#f59e0b', fontSize: 12, textAlign: 'center' }}>
+            Sin conexión — mostrando datos guardados
+          </Text>
+        </View>
+      )}
 
       {/* Compact filters + sort */}
       <View style={{ flexDirection: 'row', gap: 6, marginBottom: 12, alignItems: 'center' }}>

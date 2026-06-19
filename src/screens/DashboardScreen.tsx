@@ -14,7 +14,7 @@ const cards = [
 
 export default function DashboardScreen() {
   const { logout } = useAuth();
-  const { stats, loading, fetchStats } = useDashboard();
+  const { stats, loading, isOffline, fetchStats } = useDashboard();
 
   useEffect(() => {
     fetchStats();
@@ -32,6 +32,14 @@ export default function DashboardScreen() {
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Dashboard
       </Text>
+
+      {isOffline && (
+        <View style={{ backgroundColor: '#f59e0b20', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 8, padding: 8, marginBottom: 12 }}>
+          <Text style={{ color: '#f59e0b', fontSize: 12, textAlign: 'center' }}>
+            Sin conexión — mostrando datos guardados
+          </Text>
+        </View>
+      )}
 
       {/* Stats grid */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
