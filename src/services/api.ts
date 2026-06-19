@@ -23,8 +23,8 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export function searchGames(query: string) {
-  return request<IGDBGameResult[]>(`/search?q=${encodeURIComponent(query)}`);
+export function searchGames(query: string, offset = 0) {
+  return request<IGDBGameResult[]>(`/search?q=${encodeURIComponent(query)}&offset=${offset}`);
 }
 
 export function addGame(externalId: number) {

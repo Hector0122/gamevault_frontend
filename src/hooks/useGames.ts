@@ -2,17 +2,23 @@ import { useState } from 'react';
 import * as api from '../services/api';
 import type { DashboardStats, Game, IGDBGameResult, UserGame } from '../types';
 
+const LIMIT = 20;
+
 export function useSearch() {
   const [results, setResults] = useState<IGDBGameResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentQuery, setCurrentQuery] = useState('');
 
   async function search(query: string) {
     if (!query.trim()) return;
+    setCurrentQuery(query);
+    setResults([]);
     setLoading(true);
     setError(null);
     try {
-      const data = await api.searchGames(query);
+      const data = await api.searchGames(query, 0);
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error searching games');
@@ -21,7 +27,20 @@ export function useSearch() {
     }
   }
 
-  return { results, loading, error, search };
+  async function loadMore() {
+    if (loadingMore || loading || !currentQuery) return;
+    setLoadingMore(true);
+    try {
+      const data = await api.searchGames(currentQuery, results.length);
+      setResults(prev => [...prev, ...data]);
+    } catch {
+      // ignore errors when loading more
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  return { results, loading, loadingMore, error, search, loadMore };
 }
 
 export function useLibrary() {

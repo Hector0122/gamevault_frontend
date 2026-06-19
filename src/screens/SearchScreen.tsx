@@ -32,7 +32,7 @@ function toGame(igdb: IGDBGameResult): Game {
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
-  const { results, loading, error, search } = useSearch();
+  const { results, loading, loadingMore, error, search, loadMore } = useSearch();
   const navigation = useNavigation<SearchNav>();
   const { width } = useWindowDimensions();
 
@@ -102,7 +102,15 @@ export default function SearchScreen() {
             onPress={() => handlePress(toGame(item))}
           />
         )}
-        ListFooterComponent={<View style={{ height: 32 }} />}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator size="small" color="#10b981" style={{ marginTop: 12 }} />
+          ) : results.length > 0 ? (
+            <View style={{ height: 32 }} />
+          ) : null
+        }
       />
     </View>
   );
