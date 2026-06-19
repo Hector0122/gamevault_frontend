@@ -3,7 +3,7 @@ import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Image, Touch
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLibrary } from '../hooks/useGames';
-import type { GameStatus, UserGame } from '../types';
+import type { GameStatus } from '../types';
 import { imageProxyUrl } from '../services/api';
 
 const statuses: { key: GameStatus; label: string; color: string }[] = [
@@ -35,43 +35,6 @@ function Stars({ rating, onPress }: { rating: number; onPress?: (r: number) => v
   );
 }
 
-function FilterChips<T extends string>({ items, selected, onSelect, label }: {
-  items: { key: T; label: string }[];
-  selected: T | null;
-  onSelect: (k: T | null) => void;
-  label: string;
-}) {
-  return (
-    <View style={{ marginBottom: 8 }}>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-        <TouchableOpacity
-          onPress={() => onSelect(null)}
-          style={{
-            paddingHorizontal: 10, paddingVertical: 4, borderRadius: 14,
-            borderWidth: 1, borderColor: selected === null ? '#34d399' : '#374151',
-            backgroundColor: selected === null ? '#065f46' : 'transparent',
-          }}
-        >
-          <Text style={{ color: selected === null ? '#fff' : '#6b7280', fontSize: 12 }}>Todos</Text>
-        </TouchableOpacity>
-        {items.map((item) => (
-          <TouchableOpacity
-            key={item.key}
-            onPress={() => onSelect(selected === item.key ? null : item.key)}
-            style={{
-              paddingHorizontal: 10, paddingVertical: 4, borderRadius: 14,
-              borderWidth: 1, borderColor: selected === item.key ? '#34d399' : '#374151',
-              backgroundColor: selected === item.key ? '#065f46' : 'transparent',
-            }}
-          >
-            <Text style={{ color: selected === item.key ? '#fff' : '#9ca3af', fontSize: 12 }}>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -81,6 +44,7 @@ export default function LibraryScreen() {
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   const [genreFilter, setGenreFilter] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('recent');
+  const [showFilters, setShowFilters] = useState(false);
   const [editingHours, setEditingHours] = useState<string | null>(null);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [hoursInput, setHoursInput] = useState('');
@@ -103,6 +67,11 @@ export default function LibraryScreen() {
     games.forEach((g) => g.game.genres.forEach((gn) => set.add(gn)));
     return Array.from(set).sort();
   }, [games]);
+
+  const activeFilterCount = useMemo(
+    () => [statusFilter, platformFilter, genreFilter].filter(Boolean).length,
+    [statusFilter, platformFilter, genreFilter],
+  );
 
   const filtered = useMemo(() => {
     let result = [...games];
@@ -214,52 +183,102 @@ export default function LibraryScreen() {
         onChangeText={setSearchQuery}
       />
 
-      {/* Status filter */}
-      <FilterChips
-        items={statuses.map((s) => ({ key: s.key, label: s.label }))}
-        selected={statusFilter}
-        onSelect={(k) => setStatusFilter(k as GameStatus | null)}
-        label="Estado"
-      />
+      {/* Compact filters + sort */}
+      <View style={{ flexDirection: 'row', gap: 6, marginBottom: 12, alignItems: 'center' }}>
+        <TouchableOpacity
+          onPress={() => setShowFilters(!showFilters)}
+          style={{
+            flexDirection: 'row', alignItems: 'center', gap: 4,
+            paddingHorizontal: 10, paddingVertical: 4, borderRadius: 14,
+            borderWidth: 1, borderColor: activeFilterCount > 0 ? '#34d399' : '#374151',
+            backgroundColor: activeFilterCount > 0 ? '#065f46' : 'transparent',
+          }}
+        >
+          <Text style={{ color: activeFilterCount > 0 ? '#fff' : '#9ca3af', fontSize: 12 }}>
+            Filtrar
+          </Text>
+          {activeFilterCount > 0 && (
+            <View style={{ backgroundColor: '#34d399', borderRadius: 8, width: 16, height: 16, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#000', fontSize: 10, fontWeight: '700' }}>{activeFilterCount}</Text>
+            </View>
+          )}
+          <Text style={{ color: '#6b7280', fontSize: 10 }}>{showFilters ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
 
-      {/* Platform filter */}
-      {platforms.length > 0 && (
-        <FilterChips
-          items={platforms.map((p) => ({ key: p, label: p }))}
-          selected={platformFilter}
-          onSelect={setPlatformFilter}
-          label="Plataforma"
-        />
-      )}
+        <View style={{ flex: 1 }} />
 
-      {/* Genre filter */}
-      {genres.length > 0 && (
-        <FilterChips
-          items={genres.map((g) => ({ key: g, label: g }))}
-          selected={genreFilter}
-          onSelect={setGenreFilter}
-          label="Género"
-        />
-      )}
-
-      {/* Sort */}
-      <View style={{ flexDirection: 'row', gap: 6, marginBottom: 12 }}>
         {sortOptions.map((opt) => (
           <TouchableOpacity
             key={opt.key}
             onPress={() => setSortKey(opt.key)}
             style={{
-              paddingHorizontal: 10, paddingVertical: 4, borderRadius: 14,
+              paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
               borderWidth: 1, borderColor: sortKey === opt.key ? '#34d399' : '#374151',
               backgroundColor: sortKey === opt.key ? '#065f46' : 'transparent',
             }}
           >
-            <Text style={{ color: sortKey === opt.key ? '#fff' : '#9ca3af', fontSize: 12 }}>
+            <Text style={{ color: sortKey === opt.key ? '#fff' : '#6b7280', fontSize: 11 }}>
               {opt.label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Expandable filters */}
+      {showFilters && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 4, paddingRight: 16 }}>
+            {statuses.map((s) => {
+              const active = statusFilter === s.key;
+              return (
+                <TouchableOpacity
+                  key={s.key}
+                  onPress={() => setStatusFilter(active ? null : s.key)}
+                  style={{
+                    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
+                    borderWidth: 1, borderColor: active ? s.color : '#374151',
+                    backgroundColor: active ? s.color + '25' : 'transparent',
+                  }}
+                >
+                  <Text style={{ color: active ? s.color : '#6b7280', fontSize: 11 }}>{s.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+            {platforms.map((p) => {
+              const active = platformFilter === p;
+              return (
+                <TouchableOpacity
+                  key={p}
+                  onPress={() => setPlatformFilter(active ? null : p)}
+                  style={{
+                    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
+                    borderWidth: 1, borderColor: active ? '#3b82f6' : '#374151',
+                    backgroundColor: active ? '#3b82f625' : 'transparent',
+                  }}
+                >
+                  <Text style={{ color: active ? '#3b82f6' : '#6b7280', fontSize: 11 }}>{p}</Text>
+                </TouchableOpacity>
+              );
+            })}
+            {genres.map((g) => {
+              const active = genreFilter === g;
+              return (
+                <TouchableOpacity
+                  key={g}
+                  onPress={() => setGenreFilter(active ? null : g)}
+                  style={{
+                    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
+                    borderWidth: 1, borderColor: active ? '#8b5cf6' : '#374151',
+                    backgroundColor: active ? '#8b5cf625' : 'transparent',
+                  }}
+                >
+                  <Text style={{ color: active ? '#8b5cf6' : '#6b7280', fontSize: 11 }}>{g}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      )}
 
       {filtered.length === 0 && (
         <Text style={{ color: '#6b7280', textAlign: 'center', marginTop: 20 }}>
