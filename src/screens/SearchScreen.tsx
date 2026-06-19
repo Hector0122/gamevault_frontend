@@ -1,22 +1,42 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSearch } from '../hooks/useGames';
 import GameCard from '../components/GameCard';
 import type { SearchStackParamList } from '../navigation/AppNavigator';
-import type { Game } from '../types';
+import type { Game, IGDBGameResult } from '../types';
 
 type SearchNav = NativeStackNavigationProp<SearchStackParamList, 'SearchList'>;
+
+function toGame(igdb: IGDBGameResult): Game {
+  const cover = igdb.cover?.url
+    ? `https:${igdb.cover.url.replace('t_thumb', 't_cover_big')}`
+    : '';
+
+  return {
+    id: String(igdb.id),
+    externalId: igdb.id,
+    title: igdb.name,
+    description: igdb.summary ?? '',
+    coverUrl: cover,
+    releaseDate: igdb.first_release_date
+      ? new Date(igdb.first_release_date * 1000).toISOString()
+      : '',
+    platforms: igdb.platforms?.map((p) => p.name) ?? [],
+    genres: igdb.genres?.map((g) => g.name) ?? [],
+  };
+}
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const { results, loading, error, search } = useSearch();
   const navigation = useNavigation<SearchNav>();
 
-  function handlePress(gameData: Game) {
-    navigation.navigate('GameDetail', { game: gameData });
-  }
+  const handlePress = useCallback(
+    (game: Game) => navigation.navigate('GameDetail', { game }),
+    [navigation],
+  );
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#030712', padding: 16 }}>
@@ -66,36 +86,8 @@ export default function SearchScreen() {
       {results.map((game) => (
         <GameCard
           key={game.id}
-          game={{
-            id: String(game.id),
-            externalId: game.id,
-            title: game.name,
-            description: game.summary ?? '',
-            coverUrl: game.cover?.url
-              ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}`
-              : '',
-            releaseDate: game.first_release_date
-              ? new Date(game.first_release_date * 1000).toISOString()
-              : '',
-            platforms: game.platforms?.map((p) => p.name) ?? [],
-            genres: game.genres?.map((g) => g.name) ?? [],
-          }}
-          onPress={() =>
-            handlePress({
-              id: String(game.id),
-              externalId: game.id,
-              title: game.name,
-              description: game.summary ?? '',
-              coverUrl: game.cover?.url
-                ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}`
-                : '',
-              releaseDate: game.first_release_date
-                ? new Date(game.first_release_date * 1000).toISOString()
-                : '',
-              platforms: game.platforms?.map((p) => p.name) ?? [],
-              genres: game.genres?.map((g) => g.name) ?? [],
-            })
-          }
+          game={toGame(game)}
+          onPress={() => handlePress(toGame(game))}
         />
       ))}
     </ScrollView>

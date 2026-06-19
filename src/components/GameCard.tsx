@@ -7,15 +7,11 @@ interface Props {
 }
 
 export default function GameCard({ game, onPress }: Props) {
-  const uri = game.coverUrl
-    ? game.coverUrl.replace('t_thumb', 't_cover_big')
-    : '';
-
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={{ marginBottom: 12, borderRadius: 8, overflow: 'hidden', backgroundColor: '#1f2937' }}>
-        {uri ? (
-          <Image source={{ uri }} style={{ height: 200, width: '100%' }} resizeMode="cover" />
+        {game.coverUrl ? (
+          <Image source={{ uri: game.coverUrl }} style={{ height: 200, width: '100%' }} resizeMode="cover" />
         ) : (
           <View style={{ height: 200, backgroundColor: '#374151', justifyContent: 'center', alignItems: 'center' }}>
             <Text style={{ color: '#9ca3af' }}>Sin imagen</Text>
