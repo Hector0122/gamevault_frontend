@@ -27,8 +27,8 @@ export default function GameCard({ game, cardWidth, onPress }: Props) {
             <Text style={{ color: '#6b7280', fontSize: 11 }}>Sin imagen</Text>
           </View>
         )}
-        <View style={{ padding: 6 }}>
-          <Text style={{ fontSize: 11, fontWeight: '600', color: '#fff' }} numberOfLines={2}>
+        <View style={{ paddingHorizontal: 6, paddingVertical: 8 }}>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: '#fff' }} numberOfLines={1}>
             {game.title}
           </Text>
         </View>
