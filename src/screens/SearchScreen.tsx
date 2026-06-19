@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSearch } from '../hooks/useGames';
@@ -8,6 +8,9 @@ import type { SearchStackParamList } from '../navigation/AppNavigator';
 import type { Game, IGDBGameResult } from '../types';
 
 type SearchNav = NativeStackNavigationProp<SearchStackParamList, 'SearchList'>;
+
+const COLS = 3;
+const GAP = 10;
 
 function toGame(igdb: IGDBGameResult): Game {
   const cover = igdb.cover?.url
@@ -32,6 +35,9 @@ export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const { results, loading, error, search } = useSearch();
   const navigation = useNavigation<SearchNav>();
+  const { width } = useWindowDimensions();
+
+  const cardWidth = (width - 16 * 2 - GAP * (COLS - 1)) / COLS;
 
   const handlePress = useCallback(
     (game: Game) => navigation.navigate('GameDetail', { game }),
@@ -83,13 +89,16 @@ export default function SearchScreen() {
 
       {loading && <ActivityIndicator size="large" color="#10b981" />}
 
-      {results.map((game) => (
-        <GameCard
-          key={game.id}
-          game={toGame(game)}
-          onPress={() => handlePress(toGame(game))}
-        />
-      ))}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>
+        {results.map((game) => (
+          <GameCard
+            key={game.id}
+            game={toGame(game)}
+            cardWidth={cardWidth}
+            onPress={() => handlePress(toGame(game))}
+          />
+        ))}
+      </View>
     </ScrollView>
   );
 }
