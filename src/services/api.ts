@@ -48,3 +48,9 @@ export function updateStatus(gameId: string, status: string) {
 export function getDashboard() {
   return request<DashboardStats>('/dashboard');
 }
+
+const API_BASE_URL = 'https://gamevaultserver-production.up.railway.app/api';
+
+export function imageProxyUrl(coverUrl: string): string {
+  return `${API_BASE_URL}/image-proxy?url=${encodeURIComponent(coverUrl)}`;
+}

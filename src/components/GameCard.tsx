@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import type { Game } from '../types';
+import { imageProxyUrl } from '../services/api';
 
 interface Props {
   game: Game;
@@ -36,7 +37,7 @@ export default function GameCard({ game, onPress }: Props) {
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={{ marginBottom: 12, borderRadius: 8, overflow: 'hidden', backgroundColor: '#1f2937' }}>
         <Image
-          source={{ uri: game.coverUrl }}
+          source={{ uri: imageProxyUrl(game.coverUrl) }}
           style={{ height: 200, width: cardWidth }}
           resizeMode="cover"
           onError={() => setFailed(true)}

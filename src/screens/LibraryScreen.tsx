@@ -3,6 +3,7 @@ import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity } fr
 import { useLibrary } from '../hooks/useGames';
 import StatusBadge from '../components/StatusBadge';
 import type { GameStatus } from '../types';
+import { imageProxyUrl } from '../services/api';
 
 const statuses: GameStatus[] = ['WISHLIST', 'OWNED', 'PLAYING', 'COMPLETED', 'DROPPED'];
 
@@ -50,7 +51,7 @@ export default function LibraryScreen() {
         >
           {userGame.game.coverUrl ? (
             <Image
-              source={{ uri: userGame.game.coverUrl }}
+              source={{ uri: imageProxyUrl(userGame.game.coverUrl) }}
               style={{ width: 60, height: 80, borderRadius: 4 }}
               resizeMode="cover"
             />

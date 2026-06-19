@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useLibrary } from '../hooks/useGames';
 import type { GameStatus } from '../types';
 import type { SearchStackParamList } from '../navigation/AppNavigator';
+import { imageProxyUrl } from '../services/api';
 
 const statuses: { key: GameStatus; label: string }[] = [
   { key: 'WISHLIST', label: 'Deseado' },
@@ -40,7 +41,7 @@ export default function GameDetailScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: '#030712' }}>
       {game.coverUrl && !imgFailed ? (
         <Image
-          source={{ uri: game.coverUrl }}
+          source={{ uri: imageProxyUrl(game.coverUrl) }}
           style={{ width, height: 300 }}
           resizeMode="cover"
           onError={() => setImgFailed(true)}
