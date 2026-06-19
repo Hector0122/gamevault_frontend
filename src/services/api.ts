@@ -56,6 +56,10 @@ export function getDashboard() {
   return request<DashboardStats>('/dashboard');
 }
 
+export function removeGame(gameId: string) {
+  return request<{ success: boolean }>(`/games/${gameId}`, { method: 'DELETE' });
+}
+
 const API_BASE_URL = 'https://gamevaultserver-production.up.railway.app/api';
 
 export function imageProxyUrl(coverUrl: string): string {

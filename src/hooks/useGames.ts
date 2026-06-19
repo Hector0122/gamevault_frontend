@@ -73,7 +73,12 @@ export function useLibrary() {
     await fetchLibrary();
   }
 
-  return { games, loading, fetchLibrary, addToCollection, changeStatus, updateHours };
+  async function removeGame(gameId: string) {
+    await api.removeGame(gameId);
+    await fetchLibrary();
+  }
+
+  return { games, loading, fetchLibrary, addToCollection, changeStatus, updateHours, removeGame };
 }
 
 export function useDashboard() {
