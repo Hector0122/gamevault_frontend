@@ -9,7 +9,7 @@ const BASE = Platform.select({
 });
 
 // Override with Railway URL in production
-const API_BASE = __DEV__ ? BASE : 'https://gamevaultserver-production.up.railway.app/api';
+const API_BASE = 'https://gamevaultserver-production.up.railway.app/api';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${url}`, {
