@@ -1,9 +1,18 @@
 import type { DashboardStats, Game, IGDBGameResult, UserGame } from '../types';
 
-const BASE = '/api';
+import { Platform } from 'react-native';
+
+const BASE = Platform.select({
+  android: 'http://10.0.2.2:3001/api',
+  ios: 'http://localhost:3001/api',
+  default: 'http://localhost:3001/api',
+});
+
+// Override with Railway URL in production
+const API_BASE = __DEV__ ? BASE : 'https://gamevaultserver-production.up.railway.app/api';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${url}`, {
+  const res = await fetch(`${API_BASE}${url}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });

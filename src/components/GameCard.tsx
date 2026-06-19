@@ -1,3 +1,4 @@
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import type { Game } from '../types';
 
 interface Props {
@@ -6,33 +7,35 @@ interface Props {
 }
 
 export default function GameCard({ game, onAdd }: Props) {
+  const uri = game.coverUrl
+    ? game.coverUrl.replace('t_thumb', 't_cover_big')
+    : '';
+
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900 transition hover:border-gray-700">
-      <img
-        src={game.coverUrl || '/placeholder.png'}
-        alt={game.title}
-        className="h-64 w-full object-cover"
-      />
-      <div className="p-4">
-        <h3 className="font-semibold text-white">{game.title}</h3>
+    <View style={{ marginBottom: 12, borderRadius: 8, overflow: 'hidden', backgroundColor: '#1f2937' }}>
+      {uri ? (
+        <Image source={{ uri }} style={{ height: 200, width: '100%' }} resizeMode="cover" />
+      ) : (
+        <View style={{ height: 200, backgroundColor: '#374151', justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#9ca3af' }}>Sin imagen</Text>
+        </View>
+      )}
+      <View style={{ padding: 12 }}>
+        <Text style={{ fontSize: 16, fontWeight: '600', color: '#fff' }}>{game.title}</Text>
         {game.genres.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {game.genres.map((g) => (
-              <span key={g} className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
-                {g}
-              </span>
-            ))}
-          </div>
+          <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+            {game.genres.join(', ')}
+          </Text>
         )}
         {onAdd && (
-          <button
-            onClick={onAdd}
-            className="mt-3 w-full rounded bg-emerald-600 py-1.5 text-sm font-medium hover:bg-emerald-500 transition-colors"
+          <TouchableOpacity
+            onPress={onAdd}
+            style={{ marginTop: 8, backgroundColor: '#059669', paddingVertical: 8, borderRadius: 6, alignItems: 'center' }}
           >
-            Agregar
-          </button>
+            <Text style={{ color: '#fff', fontWeight: '500' }}>Agregar</Text>
+          </TouchableOpacity>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
