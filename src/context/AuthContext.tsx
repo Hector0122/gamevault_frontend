@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
+
+const storage = createMMKV({ id: 'gamevault' });
 
 interface User {
   id: string;
@@ -24,21 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem('token').then(async (t) => {
-      if (t) {
-        setToken(t);
-        api.setToken(t);
-        const u = await AsyncStorage.getItem('user');
-        if (u) setUser(JSON.parse(u));
-      }
-      setLoading(false);
-    });
+    const t = storage.getString('token');
+    if (t) {
+      setToken(t);
+      api.setToken(t);
+      const u = storage.getString('user');
+      if (u) setUser(JSON.parse(u));
+    }
+    setLoading(false);
   }, []);
 
   async function login(email: string, password: string) {
     const res = await api.login(email, password);
-    await AsyncStorage.setItem('token', res.token);
-    await AsyncStorage.setItem('user', JSON.stringify(res.user));
+    storage.set('token', res.token);
+    storage.set('user', JSON.stringify(res.user));
     setToken(res.token);
     api.setToken(res.token);
     setUser(res.user);
@@ -46,16 +47,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function register(email: string, password: string) {
     const res = await api.register(email, password);
-    await AsyncStorage.setItem('token', res.token);
-    await AsyncStorage.setItem('user', JSON.stringify(res.user));
+    storage.set('token', res.token);
+    storage.set('user', JSON.stringify(res.user));
     setToken(res.token);
     api.setToken(res.token);
     setUser(res.user);
   }
 
   async function logout() {
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
+    storage.remove('token');
+    storage.remove('user');
     setToken(null);
     api.setToken(null);
     setUser(null);
