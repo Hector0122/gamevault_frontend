@@ -13,7 +13,7 @@ export default function GameCard({ game, cardWidth, onPress }: Props) {
   const [failed, setFailed] = useState(false);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={{ width: cardWidth, marginBottom: 12 }}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={{ width: cardWidth }}>
       <View style={{ borderRadius: 8, overflow: 'hidden', backgroundColor: '#1f2937' }}>
         {game.coverUrl && !failed ? (
           <Image

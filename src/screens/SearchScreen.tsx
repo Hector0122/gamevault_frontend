@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSearch } from '../hooks/useGames';
@@ -10,7 +10,6 @@ import type { Game, IGDBGameResult } from '../types';
 type SearchNav = NativeStackNavigationProp<SearchStackParamList, 'SearchList'>;
 
 const COLS = 3;
-const GAP = 10;
 
 function toGame(igdb: IGDBGameResult): Game {
   const cover = igdb.cover?.url
@@ -37,7 +36,8 @@ export default function SearchScreen() {
   const navigation = useNavigation<SearchNav>();
   const { width } = useWindowDimensions();
 
-  const cardWidth = (width - 16 * 2 - GAP * (COLS - 1)) / COLS;
+  const gap = 10;
+  const cardWidth = (width - 32 - gap * (COLS - 1)) / COLS;
 
   const handlePress = useCallback(
     (game: Game) => navigation.navigate('GameDetail', { game }),
@@ -45,7 +45,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#030712', padding: 16 }}>
+    <View style={{ flex: 1, backgroundColor: '#030712', padding: 16 }}>
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Buscar Juegos
       </Text>
@@ -89,23 +89,21 @@ export default function SearchScreen() {
 
       {loading && <ActivityIndicator size="large" color="#10b981" />}
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {results.map((game, idx) => (
-          <View
-            key={game.id}
-            style={{
-              width: cardWidth,
-              marginRight: idx % COLS < COLS - 1 ? GAP : 0,
-            }}
-          >
-            <GameCard
-              game={toGame(game)}
-              cardWidth={cardWidth}
-              onPress={() => handlePress(toGame(game))}
-            />
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+      <FlatList
+        data={results}
+        numColumns={COLS}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={{ gap: 12 }}
+        columnWrapperStyle={{ gap }}
+        renderItem={({ item }) => (
+          <GameCard
+            game={toGame(item)}
+            cardWidth={cardWidth}
+            onPress={() => handlePress(toGame(item))}
+          />
+        )}
+        ListFooterComponent={<View style={{ height: 32 }} />}
+      />
+    </View>
   );
 }
