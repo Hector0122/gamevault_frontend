@@ -57,9 +57,9 @@ export function useLibrary() {
     }
   }
 
-  async function addToCollection(externalId: number) {
+  async function addToCollection(externalId: number, status = 'OWNED') {
     const game = await api.addGame(externalId);
-    await api.updateStatus(game.id, 'OWNED');
+    await api.updateStatus(game.id, status);
     await fetchLibrary();
   }
 

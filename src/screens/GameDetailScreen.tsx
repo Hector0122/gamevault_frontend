@@ -32,7 +32,7 @@ export default function GameDetailScreen() {
 
   async function handleAdd() {
     try {
-      await addToCollection(game.externalId);
+      await addToCollection(game.externalId, selectedStatus);
       Alert.alert('Agregado', `${game.title} agregado como "${statuses.find(s => s.key === selectedStatus)?.label}"`);
       navigation.goBack();
     } catch {
