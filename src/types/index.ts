@@ -44,8 +44,8 @@ export interface IGDBGameResult {
   platforms?: { name: string }[];
   genres?: { name: string }[];
   time_to_beat?: {
-    hastly: number | null;
+    hastily: number | null;
     normally: number | null;
     completely: number | null;
-  };
+  } | null;
 }
