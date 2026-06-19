@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useState } from 'react';
 import { useLibrary } from '../hooks/useGames';
@@ -18,7 +18,9 @@ export default function GameDetailScreen() {
   const navigation = useNavigation();
   const { game } = route.params;
   const { addToCollection } = useLibrary();
+  const { width } = useWindowDimensions();
   const [selectedStatus, setSelectedStatus] = useState<GameStatus>('OWNED');
+  const [imgFailed, setImgFailed] = useState(false);
 
   async function handleAdd() {
     try {
@@ -36,13 +38,18 @@ export default function GameDetailScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#030712' }}>
-      {game.coverUrl ? (
+      {game.coverUrl && !imgFailed ? (
         <Image
           source={{ uri: game.coverUrl }}
-          style={{ width: '100%', height: 300 }}
+          style={{ width, height: 300 }}
           resizeMode="cover"
+          onError={() => setImgFailed(true)}
         />
-      ) : null}
+      ) : (
+        <View style={{ width, height: 300, backgroundColor: '#374151', justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#9ca3af' }}>Sin imagen</Text>
+        </View>
+      )}
 
       <View style={{ padding: 16 }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 8 }}>

@@ -5,13 +5,6 @@ import StatusBadge from '../components/StatusBadge';
 import type { GameStatus } from '../types';
 
 const statuses: GameStatus[] = ['WISHLIST', 'OWNED', 'PLAYING', 'COMPLETED', 'DROPPED'];
-const statusLabels: Record<string, string> = {
-  WISHLIST: 'Deseado',
-  OWNED: 'Comprado',
-  PLAYING: 'Jugando',
-  COMPLETED: 'Completado',
-  DROPPED: 'Abandonado',
-};
 
 export default function LibraryScreen() {
   const { games, loading, fetchLibrary, changeStatus } = useLibrary();
