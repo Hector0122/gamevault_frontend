@@ -8,6 +8,7 @@ App Android nativa para gestionar colección de videojuegos.
 - TypeScript
 - @react-navigation/bottom-tabs + native-stack
 - Pnpm
+- react-native-safe-area-context
 
 ## Repo
 
@@ -38,11 +39,17 @@ Requiere Android Studio + SDK. La API apunta a:
 
 ## Estado
 
-- [x] Búsqueda de juegos desde IGDB
-- [x] Biblioteca con cambio de estados
+- [x] Búsqueda de juegos desde IGDB con paginación (20 por página, scroll infinito)
+- [x] Grid de 3 columnas en resultados de búsqueda
+- [x] Imágenes IGDB vía proxy del backend (resuelto: Fresco no soportaba el CDN directo)
+- [x] Biblioteca con cambio de estados y horas jugadas (edición inline)
 - [x] Dashboard con estadísticas
-- [x] Pantalla de detalle con selector de estado
-- [!] Imágenes IGDB no cargan en Android (pendiente)
-- [ ] iOS (no prioritario)
+- [x] Pantalla de detalle con selector de estado + duración estimada desde IGDB
+- [x] Safe area insets para notch/barra de estado
 - [ ] Notas y calificaciones
-- [ ] Seguimiento de horas
+- [ ] Colecciones por plataforma/género
+
+## Decisiones de Arquitectura
+
+- Imágenes IGDB se sirven vía proxy en el backend (`/api/image-proxy`) porque React Native/Fresco en Android no cargaba URLs directas del CDN de IGDB (CloudFront). El proxy fetchea la imagen y la retorna con Content-Type correcto.
+- Duración de juego desde endpoint separado de IGDB: `game_time_to_beats` (no viene incluido en `games`), se consulta en batch tras la búsqueda y se mergea con los resultados.
