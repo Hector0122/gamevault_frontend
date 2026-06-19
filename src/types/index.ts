@@ -21,6 +21,8 @@ export interface UserGame {
   hoursPlayed: number | null;
   startedAt: string | null;
   completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
   game: Game;
 }
 
@@ -33,6 +35,7 @@ export interface DashboardStats {
   PLAYING: number;
   COMPLETED: number;
   DROPPED: number;
+  estimatedHoursRemaining: number;
 }
 
 export interface IGDBGameResult {

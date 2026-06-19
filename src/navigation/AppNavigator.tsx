@@ -12,7 +12,7 @@ import type { Game } from '../types';
 
 export type SearchStackParamList = {
   SearchList: undefined;
-  GameDetail: { game: Game };
+  GameDetail: { game: Game; ownedIds?: number[] };
 };
 
 const SearchStackNav = createNativeStackNavigator<SearchStackParamList>();

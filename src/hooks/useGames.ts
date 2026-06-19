@@ -10,6 +10,14 @@ export function useSearch() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [ownedIds, setOwnedIds] = useState<number[]>([]);
+
+  async function fetchOwnedIds() {
+    try {
+      const res = await api.getUserGameIds();
+      setOwnedIds(res.ids);
+    } catch {}
+  }
 
   async function search(query: string) {
     if (!query.trim()) return;
@@ -18,7 +26,10 @@ export function useSearch() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.searchGames(query, 0);
+      const [data] = await Promise.all([
+        api.searchGames(query, 0),
+        ownedIds.length === 0 ? fetchOwnedIds() : Promise.resolve(),
+      ]);
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error searching games');
@@ -40,7 +51,7 @@ export function useSearch() {
     }
   }
 
-  return { results, loading, loadingMore, error, search, loadMore };
+  return { results, loading, loadingMore, error, search, loadMore, ownedIds, fetchOwnedIds };
 }
 
 export function useLibrary() {

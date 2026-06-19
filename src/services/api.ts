@@ -78,6 +78,10 @@ export function getDashboard() {
   return request<DashboardStats>('/dashboard');
 }
 
+export function getUserGameIds() {
+  return request<{ ids: number[] }>('/games/ids');
+}
+
 export function removeGame(gameId: string) {
   return request<{ success: boolean }>(`/games/${gameId}`, { method: 'DELETE' });
 }

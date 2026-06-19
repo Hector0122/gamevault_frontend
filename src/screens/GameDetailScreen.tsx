@@ -1,6 +1,6 @@
 import { View, Text, Image, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLibrary } from '../hooks/useGames';
 import type { GameStatus } from '../types';
 import type { SearchStackParamList } from '../navigation/AppNavigator';
@@ -24,11 +24,13 @@ function fmtMinutes(minutes: number): string {
 export default function GameDetailScreen() {
   const route = useRoute<RouteProp<SearchStackParamList, 'GameDetail'>>();
   const navigation = useNavigation();
-  const { game } = route.params;
+  const { game, ownedIds } = route.params;
   const { addToCollection } = useLibrary();
   const { width } = useWindowDimensions();
   const [selectedStatus, setSelectedStatus] = useState<GameStatus>('OWNED');
   const [imgFailed, setImgFailed] = useState(false);
+
+  const isOwned = useMemo(() => ownedIds?.includes(game.externalId), [ownedIds, game.externalId]);
 
   async function handleAdd() {
     try {
@@ -60,9 +62,16 @@ export default function GameDetailScreen() {
       )}
 
       <View style={{ padding: 16 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 8 }}>
-          {game.title}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', flex: 1 }}>
+            {game.title}
+          </Text>
+          {isOwned && (
+            <View style={{ backgroundColor: '#10b981', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>En colección ✓</Text>
+            </View>
+          )}
+        </View>
 
         {releaseYear && (
           <Text style={{ color: '#6b7280', fontSize: 14, marginBottom: 12 }}>
@@ -94,7 +103,6 @@ export default function GameDetailScreen() {
           </View>
         ) : null}
 
-        {/* Duración */}
         {(game.timeToBeatHastly || game.timeToBeatNormally || game.timeToBeatCompletely) ? (
           <View style={{ marginBottom: 16 }}>
             <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Duración estimada</Text>
@@ -121,10 +129,7 @@ export default function GameDetailScreen() {
                 key={s.key}
                 onPress={() => setSelectedStatus(s.key)}
                 style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  borderWidth: 1,
+                  paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1,
                   borderColor: active ? '#059669' : '#374151',
                   backgroundColor: active ? '#065f46' : 'transparent',
                 }}
@@ -139,9 +144,14 @@ export default function GameDetailScreen() {
 
         <TouchableOpacity
           onPress={handleAdd}
-          style={{ backgroundColor: '#059669', paddingVertical: 14, borderRadius: 8, alignItems: 'center' }}
+          style={{
+            backgroundColor: isOwned ? '#374151' : '#059669',
+            paddingVertical: 14, borderRadius: 8, alignItems: 'center',
+          }}
         >
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Agregar a colección</Text>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+            {isOwned ? 'Actualizar estado' : 'Agregar a colección'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

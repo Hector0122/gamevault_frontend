@@ -38,7 +38,7 @@ function toGame(igdb: IGDBGameResult): Game {
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
-  const { results, loading, loadingMore, error, search, loadMore } = useSearch();
+  const { results, loading, loadingMore, error, search, loadMore, ownedIds } = useSearch();
   const navigation = useNavigation<SearchNav>();
   const { width } = useWindowDimensions();
 
@@ -46,8 +46,8 @@ export default function SearchScreen() {
   const cardWidth = (width - 32 - gap * (COLS - 1)) / COLS;
 
   const handlePress = useCallback(
-    (game: Game) => navigation.navigate('GameDetail', { game }),
-    [navigation],
+    (game: Game) => navigation.navigate('GameDetail', { game, ownedIds }),
+    [navigation, ownedIds],
   );
 
   return (
@@ -111,6 +111,7 @@ export default function SearchScreen() {
             game={toGame(item)}
             cardWidth={cardWidth}
             onPress={() => handlePress(toGame(item))}
+            owned={ownedIds.includes(item.id)}
           />
         )}
         onEndReached={loadMore}
