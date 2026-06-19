@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSearch } from '../hooks/useGames';
 import GameCard from '../components/GameCard';
 import type { SearchStackParamList } from '../navigation/AppNavigator';
@@ -35,6 +36,7 @@ function toGame(igdb: IGDBGameResult): Game {
 }
 
 export default function SearchScreen() {
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const { results, loading, loadingMore, error, search, loadMore } = useSearch();
   const navigation = useNavigation<SearchNav>();
@@ -49,7 +51,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#030712', padding: 16 }}>
+    <View style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Buscar Juegos
       </Text>

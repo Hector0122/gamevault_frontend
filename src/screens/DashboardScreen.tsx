@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDashboard } from '../hooks/useGames';
 
 const cards = [
@@ -12,6 +13,7 @@ const cards = [
 ] as const;
 
 export default function DashboardScreen() {
+  const insets = useSafeAreaInsets();
   const { stats, loading, fetchStats } = useDashboard();
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#030712', padding: 16 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Dashboard
       </Text>

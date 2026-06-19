@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLibrary } from '../hooks/useGames';
 import StatusBadge from '../components/StatusBadge';
 import type { GameStatus } from '../types';
@@ -8,6 +9,7 @@ import { imageProxyUrl } from '../services/api';
 const statuses: GameStatus[] = ['WISHLIST', 'OWNED', 'PLAYING', 'COMPLETED', 'DROPPED'];
 
 export default function LibraryScreen() {
+  const insets = useSafeAreaInsets();
   const { games, loading, fetchLibrary, changeStatus, updateHours } = useLibrary();
   const [editingHours, setEditingHours] = useState<string | null>(null);
   const [hoursInput, setHoursInput] = useState('');
@@ -46,7 +48,7 @@ export default function LibraryScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#030712', padding: 16 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Biblioteca ({games.length})
       </Text>
