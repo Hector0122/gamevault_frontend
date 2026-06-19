@@ -101,7 +101,7 @@ export default function LibraryScreen() {
                   {userGame.game.title}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => handleDelete(userGame.id, userGame.game.title)}
+                  onPress={() => handleDelete(userGame.gameId, userGame.game.title)}
                   style={{ paddingLeft: 8 }}
                 >
                   <Text style={{ color: '#ef4444', fontSize: 16 }}>✕</Text>
