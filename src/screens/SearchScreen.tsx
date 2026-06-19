@@ -52,9 +52,14 @@ export default function SearchScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
-        Buscar Juegos
-      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>
+          Buscar Juegos
+        </Text>
+        <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
+          <Text style={{ color: '#34d399', fontSize: 20 }}>📊</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
         <TextInput

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLibrary } from '../hooks/useGames';
 import type { GameStatus } from '../types';
@@ -28,6 +28,7 @@ function Stars({ rating, onPress }: { rating: number; onPress?: (r: number) => v
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const { games, loading, fetchLibrary, changeStatus, updateHours, updateNotes, removeGame } = useLibrary();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingHours, setEditingHours] = useState<string | null>(null);
@@ -98,9 +99,14 @@ export default function LibraryScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
-        Biblioteca ({games.length})
-      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>
+          Biblioteca ({games.length})
+        </Text>
+        <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
+          <Text style={{ color: '#34d399', fontSize: 20 }}>📊</Text>
+        </TouchableOpacity>
+      </View>
 
       <TextInput
         style={{

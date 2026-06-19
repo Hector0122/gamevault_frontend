@@ -1,6 +1,9 @@
+import { ActivityIndicator, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import SearchScreen from '../screens/SearchScreen';
 import LibraryScreen from '../screens/LibraryScreen';
@@ -12,13 +15,13 @@ export type SearchStackParamList = {
   GameDetail: { game: Game };
 };
 
-const Stack = createNativeStackNavigator<SearchStackParamList>();
+const SearchStackNav = createNativeStackNavigator<SearchStackParamList>();
 
 function SearchStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SearchList" component={SearchScreen} />
-      <Stack.Screen
+    <SearchStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <SearchStackNav.Screen name="SearchList" component={SearchScreen} />
+      <SearchStackNav.Screen
         name="GameDetail"
         component={GameDetailScreen}
         options={{
@@ -29,7 +32,7 @@ function SearchStack() {
           headerTitleStyle: { color: '#fff' },
         }}
       />
-    </Stack.Navigator>
+    </SearchStackNav.Navigator>
   );
 }
 
@@ -37,7 +40,6 @@ const Tab = createBottomTabNavigator();
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
-    Dashboard: '📊',
     Buscar: '🔍',
     Biblioteca: '🎮',
   };
@@ -48,7 +50,14 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   );
 }
 
-export default function AppNavigator() {
+export type RootStackParamList = {
+  MainTabs: undefined;
+  Dashboard: undefined;
+};
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+
+function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -62,13 +71,6 @@ export default function AppNavigator() {
         tabBarInactiveTintColor: '#6b7280',
       }}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="Dashboard" focused={focused} />,
-        }}
-      />
       <Tab.Screen
         name="Buscar"
         component={SearchStack}
@@ -84,5 +86,49 @@ export default function AppNavigator() {
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+const AuthNav = createNativeStackNavigator();
+
+function AuthStackNav() {
+  return (
+    <AuthNav.Navigator screenOptions={{ headerShown: false }}>
+      <AuthNav.Screen name="Login" component={LoginScreen} />
+      <AuthNav.Screen name="Register" component={RegisterScreen} />
+    </AuthNav.Navigator>
+  );
+}
+
+export default function AppNavigator() {
+  const { token, loading } = useAuth();
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#10b981" style={{ flex: 1, backgroundColor: '#030712' }} />;
+  }
+
+  if (!token) {
+    return <AuthStackNav />;
+  }
+
+  return (
+    <RootStack.Navigator>
+      <RootStack.Screen
+        name="MainTabs"
+        component={MainTabs}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Dashboard',
+          headerStyle: { backgroundColor: '#111827' },
+          headerTintColor: '#34d399',
+          headerTitleStyle: { color: '#fff' },
+        }}
+      />
+    </RootStack.Navigator>
   );
 }

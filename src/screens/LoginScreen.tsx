@@ -1,0 +1,84 @@
+import { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
+
+export default function LoginScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleLogin() {
+    if (!email || !password) {
+      Alert.alert('Error', 'Completa todos los campos');
+      return;
+    }
+    setLoading(true);
+    try {
+      await login(email, password);
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 80, paddingHorizontal: 24 }}>
+      <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#34d399', textAlign: 'center', marginBottom: 8 }}>
+        GameVault
+      </Text>
+      <Text style={{ fontSize: 16, color: '#9ca3af', textAlign: 'center', marginBottom: 32 }}>
+        Inicia sesión para continuar
+      </Text>
+
+      <TextInput
+        style={{
+          backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 8,
+          paddingHorizontal: 16, paddingVertical: 12, color: '#fff', fontSize: 16, marginBottom: 12,
+        }}
+        placeholder="Email"
+        placeholderTextColor="#6b7280"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <TextInput
+        style={{
+          backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 8,
+          paddingHorizontal: 16, paddingVertical: 12, color: '#fff', fontSize: 16, marginBottom: 24,
+        }}
+        placeholder="Contraseña"
+        placeholderTextColor="#6b7280"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <TouchableOpacity
+        onPress={handleLogin}
+        disabled={loading}
+        style={{
+          backgroundColor: '#059669', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginBottom: 16,
+        }}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Iniciar sesión</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Register')} style={{ alignItems: 'center' }}>
+        <Text style={{ color: '#6b7280', fontSize: 14 }}>
+          ¿No tienes cuenta?{' '}
+          <Text style={{ color: '#34d399' }}>Regístrate</Text>
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}

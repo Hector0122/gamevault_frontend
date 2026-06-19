@@ -1,21 +1,20 @@
 import type { DashboardStats, Game, IGDBGameResult, UserGame } from '../types';
-
 import { Platform } from 'react-native';
 
-const BASE = Platform.select({
-  android: 'http://10.0.2.2:3001/api',
-  ios: 'http://localhost:3001/api',
-  default: 'http://localhost:3001/api',
-});
-
-// Override with Railway URL in production
 const API_BASE = 'https://gamevaultserver-production.up.railway.app/api';
 
+let authToken: string | null = null;
+
+export function setToken(token: string | null) {
+  authToken = token;
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  const res = await fetch(`${API_BASE}${url}`, { headers, ...options });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error);
@@ -23,6 +22,22 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// Auth
+export function login(email: string, password: string) {
+  return request<{ token: string; user: { id: string; email: string } }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function register(email: string, password: string) {
+  return request<{ token: string; user: { id: string; email: string } }>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+// Games
 export function searchGames(query: string, offset = 0) {
   return request<IGDBGameResult[]>(`/search?q=${encodeURIComponent(query)}&offset=${offset}`);
 }
@@ -67,8 +82,6 @@ export function removeGame(gameId: string) {
   return request<{ success: boolean }>(`/games/${gameId}`, { method: 'DELETE' });
 }
 
-const API_BASE_URL = 'https://gamevaultserver-production.up.railway.app/api';
-
 export function imageProxyUrl(coverUrl: string): string {
-  return `${API_BASE_URL}/image-proxy?url=${encodeURIComponent(coverUrl)}`;
+  return `${API_BASE}/image-proxy?url=${encodeURIComponent(coverUrl)}`;
 }

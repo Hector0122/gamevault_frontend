@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useDashboard } from '../hooks/useGames';
+import { useAuth } from '../context/AuthContext';
 
 const cards = [
   { key: 'total', label: 'Total' },
@@ -13,7 +13,7 @@ const cards = [
 ] as const;
 
 export default function DashboardScreen() {
-  const insets = useSafeAreaInsets();
+  const { logout } = useAuth();
   const { stats, loading, fetchStats } = useDashboard();
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#030712', paddingTop: 16, paddingHorizontal: 16 }}>
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Dashboard
       </Text>
@@ -50,6 +50,15 @@ export default function DashboardScreen() {
           </View>
         ))}
       </View>
+      <TouchableOpacity
+        onPress={logout}
+        style={{
+          backgroundColor: '#dc2626', paddingVertical: 14, borderRadius: 8,
+          alignItems: 'center', marginTop: 24, marginBottom: 40,
+        }}
+      >
+        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
