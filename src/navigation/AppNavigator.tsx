@@ -1,8 +1,37 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from 'react-native';
 import DashboardScreen from '../screens/DashboardScreen';
 import SearchScreen from '../screens/SearchScreen';
 import LibraryScreen from '../screens/LibraryScreen';
+import GameDetailScreen from '../screens/GameDetailScreen';
+import type { Game } from '../types';
+
+export type SearchStackParamList = {
+  SearchList: undefined;
+  GameDetail: { game: Game };
+};
+
+const Stack = createNativeStackNavigator<SearchStackParamList>();
+
+function SearchStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SearchList" component={SearchScreen} />
+      <Stack.Screen
+        name="GameDetail"
+        component={GameDetailScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Detalle',
+          headerStyle: { backgroundColor: '#111827' },
+          headerTintColor: '#34d399',
+          headerTitleStyle: { color: '#fff' },
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 const Tab = createBottomTabNavigator();
 
@@ -42,7 +71,7 @@ export default function AppNavigator() {
       />
       <Tab.Screen
         name="Buscar"
-        component={SearchScreen}
+        component={SearchStack}
         options={{
           tabBarIcon: ({ focused }) => <TabIcon label="Buscar" focused={focused} />,
         }}

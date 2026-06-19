@@ -1,20 +1,21 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { useSearch, useLibrary } from '../hooks/useGames';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSearch } from '../hooks/useGames';
 import GameCard from '../components/GameCard';
+import type { SearchStackParamList } from '../navigation/AppNavigator';
+import type { Game } from '../types';
+
+type SearchNav = NativeStackNavigationProp<SearchStackParamList, 'SearchList'>;
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const { results, loading, error, search } = useSearch();
-  const { addToCollection } = useLibrary();
+  const navigation = useNavigation<SearchNav>();
 
-  async function handleAdd(externalId: number) {
-    try {
-      await addToCollection(externalId);
-      Alert.alert('Agregado', 'Juego agregado a la colección');
-    } catch {
-      Alert.alert('Error', 'No se pudo agregar el juego');
-    }
+  function handlePress(gameData: Game) {
+    navigation.navigate('GameDetail', { game: gameData });
   }
 
   return (
@@ -79,7 +80,22 @@ export default function SearchScreen() {
             platforms: game.platforms?.map((p) => p.name) ?? [],
             genres: game.genres?.map((g) => g.name) ?? [],
           }}
-          onAdd={() => handleAdd(game.id)}
+          onPress={() =>
+            handlePress({
+              id: String(game.id),
+              externalId: game.id,
+              title: game.name,
+              description: game.summary ?? '',
+              coverUrl: game.cover?.url
+                ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}`
+                : '',
+              releaseDate: game.first_release_date
+                ? new Date(game.first_release_date * 1000).toISOString()
+                : '',
+              platforms: game.platforms?.map((p) => p.name) ?? [],
+              genres: game.genres?.map((g) => g.name) ?? [],
+            })
+          }
         />
       ))}
     </ScrollView>
