@@ -57,7 +57,7 @@ export default function SearchScreen() {
           Buscar Juegos
         </Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Text style={{ color: '#34d399', fontSize: 20 }}>📊</Text>
+          <Text style={{ color: '#34d399', fontSize: 20 }}>👤</Text>
         </TouchableOpacity>
       </View>
 

@@ -72,17 +72,17 @@ function MainTabs() {
       }}
     >
       <Tab.Screen
-        name="Buscar"
-        component={SearchStack}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="Buscar" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
         name="Biblioteca"
         component={LibraryScreen}
         options={{
           tabBarIcon: ({ focused }) => <TabIcon label="Biblioteca" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Buscar"
+        component={SearchStack}
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon label="Buscar" focused={focused} />,
         }}
       />
     </Tab.Navigator>

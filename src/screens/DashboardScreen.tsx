@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useDashboard } from '../hooks/useGames';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,7 +25,10 @@ export default function DashboardScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#030712', paddingTop: 16, paddingHorizontal: 16 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#030712', paddingTop: 16, paddingHorizontal: 16 }}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchStats} tintColor="#10b981" />}
+    >
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Dashboard
       </Text>
