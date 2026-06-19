@@ -89,14 +89,21 @@ export default function SearchScreen() {
 
       {loading && <ActivityIndicator size="large" color="#10b981" />}
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>
-        {results.map((game) => (
-          <GameCard
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        {results.map((game, idx) => (
+          <View
             key={game.id}
-            game={toGame(game)}
-            cardWidth={cardWidth}
-            onPress={() => handlePress(toGame(game))}
-          />
+            style={{
+              width: cardWidth,
+              marginRight: idx % COLS < COLS - 1 ? GAP : 0,
+            }}
+          >
+            <GameCard
+              game={toGame(game)}
+              cardWidth={cardWidth}
+              onPress={() => handlePress(toGame(game))}
+            />
+          </View>
         ))}
       </View>
     </ScrollView>
