@@ -45,6 +45,13 @@ export function updateStatus(gameId: string, status: string) {
   });
 }
 
+export function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }) {
+  return request<{ success: boolean }>(`/games/${gameId}/notes`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
 export function updateHours(gameId: string, hoursPlayed: number) {
   return request<{ success: boolean }>(`/games/${gameId}/hours`, {
     method: 'PATCH',

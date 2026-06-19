@@ -73,12 +73,17 @@ export function useLibrary() {
     await fetchLibrary();
   }
 
+  async function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }) {
+    await api.updateNotes(gameId, data);
+    await fetchLibrary();
+  }
+
   async function removeGame(gameId: string) {
     await api.removeGame(gameId);
     await fetchLibrary();
   }
 
-  return { games, loading, fetchLibrary, addToCollection, changeStatus, updateHours, removeGame };
+  return { games, loading, fetchLibrary, addToCollection, changeStatus, updateHours, updateNotes, removeGame };
 }
 
 export function useDashboard() {

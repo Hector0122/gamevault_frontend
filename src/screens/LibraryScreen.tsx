@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,16 +14,36 @@ const statuses: { key: GameStatus; label: string; color: string }[] = [
   { key: 'DROPPED', label: 'Abandonado', color: '#ef4444' },
 ];
 
+function Stars({ rating, onPress }: { rating: number; onPress?: (r: number) => void }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 2 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <TouchableOpacity key={i} onPress={() => onPress?.(i)} disabled={!onPress}>
+          <Text style={{ fontSize: 16, color: i <= rating ? '#f59e0b' : '#374151' }}>★</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
-  const { games, loading, fetchLibrary, changeStatus, updateHours, removeGame } = useLibrary();
+  const { games, loading, fetchLibrary, changeStatus, updateHours, updateNotes, removeGame } = useLibrary();
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingHours, setEditingHours] = useState<string | null>(null);
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [hoursInput, setHoursInput] = useState('');
+  const [notesInput, setNotesInput] = useState('');
 
   useFocusEffect(
     useCallback(() => {
       fetchLibrary();
     }, [])
+  );
+
+  const filtered = useMemo(
+    () => games.filter((g) => g.game.title.toLowerCase().includes(searchQuery.toLowerCase())),
+    [games, searchQuery],
   );
 
   async function handleSaveHours(gameId: string) {
@@ -41,15 +61,25 @@ export default function LibraryScreen() {
     }
   }
 
+  async function handleSaveNotes(gameId: string) {
+    try {
+      await updateNotes(gameId, { notes: notesInput || null });
+      setEditingNotes(null);
+      setNotesInput('');
+    } catch {
+      Alert.alert('Error', 'No se pudieron guardar las notas');
+    }
+  }
+
+  function handleRating(gameId: string, rating: number) {
+    updateNotes(gameId, { rating });
+  }
+
   function handleDelete(gameId: string, title: string) {
-    Alert.alert(
-      'Eliminar juego',
-      `¿Eliminar "${title}" de la biblioteca?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: () => removeGame(gameId) },
-      ]
-    );
+    Alert.alert('Eliminar juego', `¿Eliminar "${title}" de la biblioteca?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => removeGame(gameId) },
+    ]);
   }
 
   if (loading && games.length === 0) {
@@ -72,7 +102,25 @@ export default function LibraryScreen() {
         Biblioteca ({games.length})
       </Text>
 
-      {games.map((userGame) => (
+      <TextInput
+        style={{
+          backgroundColor: '#111827',
+          borderWidth: 1,
+          borderColor: '#374151',
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          color: '#fff',
+          fontSize: 14,
+          marginBottom: 16,
+        }}
+        placeholder="Buscar en biblioteca..."
+        placeholderTextColor="#6b7280"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+
+      {filtered.map((userGame) => (
         <View
           key={userGame.id}
           style={{
@@ -100,27 +148,19 @@ export default function LibraryScreen() {
                 <Text style={{ fontSize: 16, fontWeight: '600', color: '#fff', flex: 1 }}>
                   {userGame.game.title}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => handleDelete(userGame.gameId, userGame.game.title)}
-                  style={{ paddingLeft: 8 }}
-                >
+                <TouchableOpacity onPress={() => handleDelete(userGame.gameId, userGame.game.title)} style={{ paddingLeft: 8 }}>
                   <Text style={{ color: '#ef4444', fontSize: 16 }}>✕</Text>
                 </TouchableOpacity>
               </View>
+
+              <Stars rating={userGame.rating ?? 0} onPress={(r) => handleRating(userGame.gameId, r)} />
 
               {editingHours === userGame.id ? (
                 <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
                   <TextInput
                     style={{
-                      flex: 1,
-                      backgroundColor: '#1f2937',
-                      borderWidth: 1,
-                      borderColor: '#374151',
-                      borderRadius: 6,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      color: '#fff',
-                      fontSize: 12,
+                      flex: 1, backgroundColor: '#1f2937', borderWidth: 1, borderColor: '#374151',
+                      borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, color: '#fff', fontSize: 12,
                     }}
                     placeholder="Horas"
                     placeholderTextColor="#6b7280"
@@ -139,6 +179,34 @@ export default function LibraryScreen() {
                 <TouchableOpacity onPress={() => { setEditingHours(userGame.id); setHoursInput(String(userGame.hoursPlayed ?? '')); }}>
                   <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>
                     {userGame.hoursPlayed !== null ? `${userGame.hoursPlayed}h jugadas` : '0h — toca para editar'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {editingNotes === userGame.id ? (
+                <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
+                  <TextInput
+                    style={{
+                      flex: 1, backgroundColor: '#1f2937', borderWidth: 1, borderColor: '#374151',
+                      borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, color: '#fff', fontSize: 12,
+                    }}
+                    placeholder="Notas personales..."
+                    placeholderTextColor="#6b7280"
+                    value={notesInput}
+                    onChangeText={setNotesInput}
+                    multiline
+                  />
+                  <TouchableOpacity
+                    onPress={() => handleSaveNotes(userGame.gameId)}
+                    style={{ backgroundColor: '#059669', paddingHorizontal: 10, borderRadius: 6, justifyContent: 'center' }}
+                  >
+                    <Text style={{ color: '#fff', fontSize: 12 }}>OK</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity onPress={() => { setEditingNotes(userGame.id); setNotesInput(userGame.notes ?? ''); }}>
+                  <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>
+                    {userGame.notes ? userGame.notes : 'Sin notas — toca para añadir'}
                   </Text>
                 </TouchableOpacity>
               )}
