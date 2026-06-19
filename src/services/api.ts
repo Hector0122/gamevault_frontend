@@ -39,7 +39,7 @@ export function getLibrary() {
 }
 
 export function updateStatus(gameId: string, status: string) {
-  return request<UserGame>(`/games/${gameId}/status`, {
+  return request<{ success: boolean }>(`/games/${gameId}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   });
