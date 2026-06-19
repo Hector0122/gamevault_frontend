@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLibrary } from '../hooks/useGames';
 import StatusBadge from '../components/StatusBadge';
@@ -14,9 +15,11 @@ export default function LibraryScreen() {
   const [editingHours, setEditingHours] = useState<string | null>(null);
   const [hoursInput, setHoursInput] = useState('');
 
-  useEffect(() => {
-    fetchLibrary();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchLibrary();
+    }, [])
+  );
 
   async function handleSaveHours(gameId: string) {
     const hours = parseFloat(hoursInput);
