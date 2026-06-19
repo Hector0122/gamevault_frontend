@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, Alert, useWindowDimensions, TextInput } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useState } from 'react';
 import { useLibrary } from '../hooks/useGames';
@@ -14,14 +14,22 @@ const statuses: { key: GameStatus; label: string }[] = [
   { key: 'DROPPED', label: 'Abandonado' },
 ];
 
+function fmtMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 export default function GameDetailScreen() {
   const route = useRoute<RouteProp<SearchStackParamList, 'GameDetail'>>();
   const navigation = useNavigation();
   const { game } = route.params;
-  const { addToCollection } = useLibrary();
+  const { addToCollection, updateHours } = useLibrary();
   const { width } = useWindowDimensions();
   const [selectedStatus, setSelectedStatus] = useState<GameStatus>('OWNED');
   const [imgFailed, setImgFailed] = useState(false);
+  const [hoursText, setHoursText] = useState('');
 
   async function handleAdd() {
     try {
@@ -30,6 +38,20 @@ export default function GameDetailScreen() {
       navigation.goBack();
     } catch {
       Alert.alert('Error', 'No se pudo agregar el juego');
+    }
+  }
+
+  async function handleSaveHours() {
+    const hours = parseFloat(hoursText);
+    if (isNaN(hours) || hours < 0) {
+      Alert.alert('Error', 'Ingresa un número válido de horas');
+      return;
+    }
+    try {
+      await updateHours(game.id, hours);
+      Alert.alert('Guardado', `Horas actualizadas: ${hours}h`);
+    } catch {
+      Alert.alert('Error', 'No se pudieron guardar las horas');
     }
   }
 
@@ -86,6 +108,53 @@ export default function GameDetailScreen() {
             <Text style={{ color: '#d1d5db', fontSize: 14, lineHeight: 20 }}>{game.description}</Text>
           </View>
         ) : null}
+
+        {/* Duración */}
+        {(game.timeToBeatHastly || game.timeToBeatNormally || game.timeToBeatCompletely) ? (
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Duración estimada</Text>
+            {game.timeToBeatHastly && (
+              <Text style={{ color: '#d1d5db', fontSize: 13 }}>Rápido: {fmtMinutes(game.timeToBeatHastly)}</Text>
+            )}
+            {game.timeToBeatNormally && (
+              <Text style={{ color: '#d1d5db', fontSize: 13 }}>Normal: {fmtMinutes(game.timeToBeatNormally)}</Text>
+            )}
+            {game.timeToBeatCompletely && (
+              <Text style={{ color: '#d1d5db', fontSize: 13 }}>Completista: {fmtMinutes(game.timeToBeatCompletely)}</Text>
+            )}
+          </View>
+        ) : null}
+
+        {/* Horas jugadas */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>
+            Horas jugadas
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TextInput
+              style={{
+                flex: 1,
+                backgroundColor: '#111827',
+                borderWidth: 1,
+                borderColor: '#374151',
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                color: '#fff',
+              }}
+              placeholder="0"
+              placeholderTextColor="#6b7280"
+              keyboardType="numeric"
+              value={hoursText}
+              onChangeText={setHoursText}
+            />
+            <TouchableOpacity
+              onPress={handleSaveHours}
+              style={{ backgroundColor: '#059669', paddingHorizontal: 16, borderRadius: 8, justifyContent: 'center' }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '500' }}>Guardar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
           Estado

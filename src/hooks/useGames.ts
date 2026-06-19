@@ -68,7 +68,12 @@ export function useLibrary() {
     await fetchLibrary();
   }
 
-  return { games, loading, fetchLibrary, addToCollection, changeStatus };
+  async function updateHours(gameId: string, hoursPlayed: number) {
+    await api.updateHours(gameId, hoursPlayed);
+    await fetchLibrary();
+  }
+
+  return { games, loading, fetchLibrary, addToCollection, changeStatus, updateHours };
 }
 
 export function useDashboard() {

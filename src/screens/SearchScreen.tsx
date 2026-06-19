@@ -15,6 +15,7 @@ function toGame(igdb: IGDBGameResult): Game {
   const cover = igdb.cover?.url
     ? `https:${igdb.cover.url.replace('t_thumb', 't_cover_big')}`
     : '';
+  const ttb = igdb.time_to_beat;
 
   return {
     id: String(igdb.id),
@@ -27,6 +28,9 @@ function toGame(igdb: IGDBGameResult): Game {
       : '',
     platforms: igdb.platforms?.map((p) => p.name) ?? [],
     genres: igdb.genres?.map((g) => g.name) ?? [],
+    timeToBeatHastly: ttb?.hastly ? Math.round(ttb.hastly / 60) : null,
+    timeToBeatNormally: ttb?.normally ? Math.round(ttb.normally / 60) : null,
+    timeToBeatCompletely: ttb?.completely ? Math.round(ttb.completely / 60) : null,
   };
 }
 

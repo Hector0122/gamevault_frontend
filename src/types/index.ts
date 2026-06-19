@@ -7,6 +7,9 @@ export interface Game {
   releaseDate: string;
   platforms: string[];
   genres: string[];
+  timeToBeatHastly: number | null;
+  timeToBeatNormally: number | null;
+  timeToBeatCompletely: number | null;
 }
 
 export interface UserGame {
@@ -40,4 +43,9 @@ export interface IGDBGameResult {
   first_release_date?: number;
   platforms?: { name: string }[];
   genres?: { name: string }[];
+  time_to_beat?: {
+    hastly: number | null;
+    normally: number | null;
+    completely: number | null;
+  };
 }

@@ -45,6 +45,13 @@ export function updateStatus(gameId: string, status: string) {
   });
 }
 
+export function updateHours(gameId: string, hoursPlayed: number) {
+  return request<{ success: boolean }>(`/games/${gameId}/hours`, {
+    method: 'PATCH',
+    body: JSON.stringify({ hoursPlayed }),
+  });
+}
+
 export function getDashboard() {
   return request<DashboardStats>('/dashboard');
 }

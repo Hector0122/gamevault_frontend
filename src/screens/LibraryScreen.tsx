@@ -64,6 +64,11 @@ export default function LibraryScreen() {
               {userGame.game.title}
             </Text>
             <StatusBadge status={userGame.status} />
+            {userGame.hoursPlayed !== null && (
+              <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>
+                {userGame.hoursPlayed}h jugadas
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity
