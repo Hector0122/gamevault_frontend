@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useLibrary } from '../hooks/useGames';
-import type { GameStatus, UserGame } from '../types';
+import type { GameStatus, Priority, UserGame } from '../types';
 import { imageProxyUrl, exportUrl } from '../services/api';
 import type { LibraryStackParamList } from '../navigation/AppNavigator';
 
@@ -28,12 +28,20 @@ const sortOptions: { key: SortKey; label: string }[] = [
   { key: 'rating', label: 'Rating' },
 ];
 
+const priorityCycle: (Priority | null)[] = [null, 'HIGH', 'MEDIUM', 'LOW'];
+
+const priorityConfig: Record<string, { label: string; color: string }> = {
+  HIGH: { label: '!!', color: '#ef4444' },
+  MEDIUM: { label: '!', color: '#f59e0b' },
+  LOW: { label: '↓', color: '#6b7280' },
+};
+
 function Stars({ rating, onPress }: { rating: number; onPress?: (r: number) => void }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 2 }}>
+    <View style={{ flexDirection: 'row', gap: 6 }}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <TouchableOpacity key={i} onPress={() => onPress?.(i)} disabled={!onPress}>
-          <Text style={{ fontSize: 16, color: i <= rating ? '#f59e0b' : '#374151' }}>★</Text>
+        <TouchableOpacity key={i} onPress={() => onPress?.(i)} disabled={!onPress} style={{ padding: 4 }}>
+          <Text style={{ fontSize: 22, color: i <= rating ? '#f59e0b' : '#374151' }}>★</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -46,7 +54,7 @@ export default function LibraryScreen() {
   const {
     games, total, loading, loadingMore, isOffline,
     fetchLibrary, loadMore,
-    changeStatus, updateHours, updateNotes, removeGame,
+    changeStatus, updateHours, updateNotes, removeGame, updatePriority,
     searchQuery, setSearchQuery,
     statusFilter, setStatusFilter,
     platformFilter, setPlatformFilter,
@@ -63,7 +71,7 @@ export default function LibraryScreen() {
   useFocusEffect(
     useCallback(() => {
       fetchLibrary(true);
-    }, [])
+    }, [fetchLibrary])
   );
 
   const platforms = useMemo(() => {
@@ -85,7 +93,6 @@ export default function LibraryScreen() {
 
   function handleFilterChange<T>(setter: (v: T) => void, value: T) {
     setter(value);
-    fetchLibrary(true);
   }
 
   async function handleSaveHours(gameId: string) {
@@ -115,8 +122,8 @@ export default function LibraryScreen() {
     }
   }
 
-  function handleRating(gameId: string, rating: number) {
-    updateNotes(gameId, { rating });
+  async function handleRating(gameId: string, rating: number) {
+    await updateNotes(gameId, { rating }, true);
   }
 
   function handleDelete(gameId: string, title: string) {
@@ -239,6 +246,34 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           </View>
 
+          {userGame.priority && (
+            <View style={{
+              paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8,
+              backgroundColor: priorityConfig[userGame.priority].color + '20',
+              borderWidth: 1, borderColor: priorityConfig[userGame.priority].color + '40',
+            }}>
+              <Text style={{ color: priorityConfig[userGame.priority].color, fontSize: 10, fontWeight: '700' }}>
+                {priorityConfig[userGame.priority].label}
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            onPress={() => {
+              const idx = priorityCycle.indexOf(userGame.priority);
+              const next = priorityCycle[(idx + 1) % priorityCycle.length];
+              updatePriority(userGame.gameId, next);
+            }}
+            style={{
+              paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8,
+              borderWidth: 1, borderColor: '#374151',
+            }}
+          >
+            <Text style={{ color: '#6b7280', fontSize: 9 }}>
+              {userGame.priority ? (priorityCycle.indexOf(userGame.priority) + 1) + '/' + (priorityCycle.length - 1) : '-'}
+            </Text>
+          </TouchableOpacity>
+
           {editingNotes === userGame.id ? (
             <View style={{ flex: 1, flexDirection: 'row', gap: 4 }}>
               <TextInput
@@ -343,7 +378,7 @@ export default function LibraryScreen() {
         {sortOptions.map((opt) => (
           <TouchableOpacity
             key={opt.key}
-            onPress={() => { setSortKey(opt.key); fetchLibrary(true); }}
+            onPress={() => setSortKey(opt.key)}
             style={{
               paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
               borderWidth: 1, borderColor: sortKey === opt.key ? '#34d399' : '#374151',

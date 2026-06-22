@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
-import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame } from '../types';
+import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame, WishlistDeal } from '../types';
 
 const cache = createMMKV({ id: 'gamevault_cache' });
 
@@ -165,9 +165,13 @@ export function useLibrary() {
     await fetchLibrary(true);
   }
 
-  async function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }) {
+  async function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }, silent = false) {
     await api.updateNotes(gameId, data);
-    await fetchLibrary(true);
+    if (silent) {
+      setGames(prev => prev.map(g => (g.gameId === gameId ? { ...g, ...data } : g)));
+    } else {
+      await fetchLibrary(true);
+    }
   }
 
   async function removeGame(gameId: string) {
@@ -175,10 +179,15 @@ export function useLibrary() {
     await fetchLibrary(true);
   }
 
+  async function updatePriority(gameId: string, priority: string | null) {
+    await api.updatePriority(gameId, priority);
+    setGames(prev => prev.map(g => (g.gameId === gameId ? { ...g, priority: priority as any } : g)));
+  }
+
   return {
     games, total, loading, loadingMore, isOffline,
     fetchLibrary, loadMore,
-    addToCollection, changeStatus, updateStatus, updateHours, updateNotes, removeGame,
+    addToCollection, changeStatus, updateStatus, updateHours, updateNotes, removeGame, updatePriority,
     searchQuery, setSearchQuery,
     statusFilter, setStatusFilter,
     platformFilter, setPlatformFilter,
@@ -189,6 +198,7 @@ export function useLibrary() {
 
 export function useDeals() {
   const [recommendations, setRecommendations] = useState<DealRecommendation[]>([]);
+  const [wishlistDeals, setWishlistDeals] = useState<WishlistDeal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -197,17 +207,25 @@ export function useDeals() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getDeals();
-      setRecommendations(data.recommendations);
-      setMessage(data.message ?? null);
+      const [recData] = await Promise.all([
+        api.getDeals(),
+      ]);
+      setRecommendations(recData.recommendations);
+      setMessage(recData.message ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al obtener ofertas');
+    }
+    try {
+      const wlData = await api.getWishlistDeals();
+      setWishlistDeals(wlData.deals);
+    } catch {
+      // wishlist deals is optional — ignore errors
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { recommendations, loading, error, message, fetchDeals };
+  return { recommendations, wishlistDeals, loading, error, message, fetchDeals };
 }
 
 export function useDashboard() {

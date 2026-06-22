@@ -16,6 +16,7 @@ export interface UserGame {
   id: string;
   gameId: string;
   status: GameStatus;
+  priority: Priority | null;
   rating: number | null;
   notes: string | null;
   hoursPlayed: number | null;
@@ -27,6 +28,8 @@ export interface UserGame {
 }
 
 export type GameStatus = 'WISHLIST' | 'OWNED' | 'PLAYING' | 'COMPLETED' | 'DROPPED';
+
+export type Priority = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface DashboardStats {
   total: number;
@@ -66,4 +69,15 @@ export interface IGDBGameResult {
     normally: number | null;
     completely: number | null;
   } | null;
+}
+
+export interface WishlistDeal {
+  title: string;
+  coverUrl: string | null;
+  genres: string[];
+  currentPrice: number;
+  regularPrice: number;
+  discount: number;
+  store: string;
+  url: string;
 }

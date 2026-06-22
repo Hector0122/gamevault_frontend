@@ -100,12 +100,23 @@ export function getDeals() {
   return request<{ recommendations: DealRecommendation[]; message?: string }>('/deals');
 }
 
+export function getWishlistDeals() {
+  return request<{ deals: import('../types').WishlistDeal[] }>('/deals/wishlist');
+}
+
 export function getUserGameIds() {
   return request<{ ids: number[] }>('/games/ids');
 }
 
 export function removeGame(gameId: string) {
   return request<{ success: boolean }>(`/games/${gameId}`, { method: 'DELETE' });
+}
+
+export function updatePriority(gameId: string, priority: string | null) {
+  return request<{ success: boolean }>(`/games/${gameId}/priority`, {
+    method: 'PATCH',
+    body: JSON.stringify({ priority }),
+  });
 }
 
 export function exportUrl(params?: {
