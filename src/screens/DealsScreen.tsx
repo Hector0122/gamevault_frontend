@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Image, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Image, RefreshControl, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -18,8 +18,16 @@ export default function DealsScreen() {
   );
 
   function renderItem({ item }: { item: DealRecommendation }) {
+    const canOpen = item.deal?.url != null;
     return (
-      <View
+      <TouchableOpacity
+        activeOpacity={canOpen ? 0.6 : 1}
+        disabled={!canOpen}
+        onPress={() => {
+          if (item.deal?.url) {
+            Linking.openURL(item.deal.url);
+          }
+        }}
         style={{
           backgroundColor: '#111827', borderWidth: 1, borderColor: '#1f2937',
           borderRadius: 8, padding: 12, marginBottom: 10,
@@ -73,7 +81,7 @@ export default function DealsScreen() {
             ) : null}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   }
 
@@ -82,8 +90,6 @@ export default function DealsScreen() {
       <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
         Recomendaciones
       </Text>
-
-      {loading && <ActivityIndicator size="large" color="#10b981" style={{ marginTop: 40 }} />}
 
       {error && (
         <View style={{ backgroundColor: '#ef444420', borderWidth: 1, borderColor: '#ef4444', borderRadius: 8, padding: 12, marginBottom: 12 }}>
@@ -97,7 +103,9 @@ export default function DealsScreen() {
         </View>
       )}
 
-      {!loading && recommendations.length === 0 && !message && (
+      {loading && recommendations.length === 0 ? (
+        <ActivityIndicator size="large" color="#10b981" style={{ flex: 1 }} />
+      ) : recommendations.length === 0 && !message ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ color: '#6b7280', fontSize: 14, textAlign: 'center' }}>
             Completa juegos en tu biblioteca para recibir recomendaciones personalizadas.
@@ -109,15 +117,15 @@ export default function DealsScreen() {
             <Text style={{ color: '#fff', fontWeight: '500' }}>Actualizar</Text>
           </TouchableOpacity>
         </View>
+      ) : (
+        <FlatList
+          data={recommendations}
+          keyExtractor={(item) => item.title}
+          renderItem={renderItem}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchDeals} tintColor="#10b981" />}
+          ListFooterComponent={<View style={{ height: 32 }} />}
+        />
       )}
-
-      <FlatList
-        data={recommendations}
-        keyExtractor={(item) => item.title}
-        renderItem={renderItem}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchDeals} tintColor="#10b981" />}
-        ListFooterComponent={<View style={{ height: 32 }} />}
-      />
     </View>
   );
 }

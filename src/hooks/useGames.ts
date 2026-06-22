@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
 import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame } from '../types';
@@ -80,7 +80,6 @@ export function useSearch() {
 export function useLibrary() {
   const [games, setGames] = useState<UserGame[]>(() => loadCachedLibrary() ?? []);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
@@ -90,6 +89,7 @@ export function useLibrary() {
   const [genreFilter, setGenreFilter] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<'recent' | 'title' | 'hours' | 'rating'>('recent');
 
+  const nextPageRef = useRef(1);
   const PAGE_LIMIT = 50;
 
   const buildParams = useCallback(
@@ -106,11 +106,11 @@ export function useLibrary() {
   );
 
   const fetchLibrary = useCallback(async (reset = true) => {
-    const p = reset ? 1 : page;
+    const p = reset ? 1 : nextPageRef.current;
     if (reset) {
       setLoading(true);
       setGames([]);
-      setPage(1);
+      nextPageRef.current = 1;
     } else {
       setLoadingMore(true);
     }
@@ -123,7 +123,7 @@ export function useLibrary() {
         setGames(prev => [...prev, ...data.games]);
       }
       setTotal(data.total);
-      if (!reset) setPage(p + 1);
+      nextPageRef.current = p + 1;
       setIsOffline(false);
     } catch {
       if (reset) {
@@ -138,7 +138,7 @@ export function useLibrary() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [page, buildParams]);
+  }, [buildParams]);
 
   const loadMore = useCallback(() => {
     if (loadingMore || loading || games.length >= total) return;
