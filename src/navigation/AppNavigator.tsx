@@ -8,11 +8,17 @@ import DashboardScreen from '../screens/DashboardScreen';
 import SearchScreen from '../screens/SearchScreen';
 import LibraryScreen from '../screens/LibraryScreen';
 import GameDetailScreen from '../screens/GameDetailScreen';
-import type { Game } from '../types';
+import DealsScreen from '../screens/DealsScreen';
+import type { Game, UserGame } from '../types';
 
 export type SearchStackParamList = {
   SearchList: undefined;
-  GameDetail: { game: Game; ownedIds?: number[] };
+  GameDetail: { game: Game; ownedIds?: number[]; userGame?: UserGame };
+};
+
+export type LibraryStackParamList = {
+  LibraryList: undefined;
+  GameDetail: { game: Game; ownedIds?: number[]; userGame?: UserGame };
 };
 
 const SearchStackNav = createNativeStackNavigator<SearchStackParamList>();
@@ -36,12 +42,34 @@ function SearchStack() {
   );
 }
 
+const LibraryStackNav = createNativeStackNavigator<LibraryStackParamList>();
+
+function LibraryStack() {
+  return (
+    <LibraryStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <LibraryStackNav.Screen name="LibraryList" component={LibraryScreen} />
+      <LibraryStackNav.Screen
+        name="GameDetail"
+        component={GameDetailScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Detalle',
+          headerStyle: { backgroundColor: '#111827' },
+          headerTintColor: '#34d399',
+          headerTitleStyle: { color: '#fff' },
+        }}
+      />
+    </LibraryStackNav.Navigator>
+  );
+}
+
 const Tab = createBottomTabNavigator();
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
     Buscar: '🔍',
     Biblioteca: '🎮',
+    Ofertas: '🏷️',
   };
   return (
     <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>
@@ -73,7 +101,7 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Biblioteca"
-        component={LibraryScreen}
+        component={LibraryStack}
         options={{
           tabBarIcon: ({ focused }) => <TabIcon label="Biblioteca" focused={focused} />,
         }}
@@ -83,6 +111,13 @@ function MainTabs() {
         component={SearchStack}
         options={{
           tabBarIcon: ({ focused }) => <TabIcon label="Buscar" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Ofertas"
+        component={DealsScreen}
+        options={{
+          tabBarIcon: ({ focused }) => <TabIcon label="Ofertas" focused={focused} />,
         }}
       />
     </Tab.Navigator>

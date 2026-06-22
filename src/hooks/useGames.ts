@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
-import type { DashboardStats, Game, IGDBGameResult, UserGame } from '../types';
+import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame } from '../types';
 
 const cache = createMMKV({ id: 'gamevault_cache' });
 
@@ -79,52 +79,135 @@ export function useSearch() {
 
 export function useLibrary() {
   const [games, setGames] = useState<UserGame[]>(() => loadCachedLibrary() ?? []);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [platformFilter, setPlatformFilter] = useState<string | null>(null);
+  const [genreFilter, setGenreFilter] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<'recent' | 'title' | 'hours' | 'rating'>('recent');
 
-  const fetchLibrary = useCallback(async () => {
-    setLoading(true);
+  const PAGE_LIMIT = 50;
+
+  const buildParams = useCallback(
+    (p: number) => ({
+      page: p,
+      limit: PAGE_LIMIT,
+      search: searchQuery || undefined,
+      status: statusFilter ?? undefined,
+      platform: platformFilter ?? undefined,
+      genre: genreFilter ?? undefined,
+      sort: sortKey,
+    }),
+    [searchQuery, statusFilter, platformFilter, genreFilter, sortKey],
+  );
+
+  const fetchLibrary = useCallback(async (reset = true) => {
+    const p = reset ? 1 : page;
+    if (reset) {
+      setLoading(true);
+      setGames([]);
+      setPage(1);
+    } else {
+      setLoadingMore(true);
+    }
     try {
-      const data = await api.getLibrary();
-      setGames(data);
-      saveCachedLibrary(data);
+      const data = await api.getLibrary(buildParams(p));
+      if (reset) {
+        setGames(data.games);
+        saveCachedLibrary(data.games);
+      } else {
+        setGames(prev => [...prev, ...data.games]);
+      }
+      setTotal(data.total);
+      if (!reset) setPage(p + 1);
       setIsOffline(false);
     } catch {
-      const cached = loadCachedLibrary();
-      if (cached) setGames(cached);
+      if (reset) {
+        const cached = loadCachedLibrary();
+        if (cached) {
+          setGames(cached);
+          setTotal(cached.length);
+        }
+      }
       setIsOffline(true);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [page, buildParams]);
+
+  const loadMore = useCallback(() => {
+    if (loadingMore || loading || games.length >= total) return;
+    fetchLibrary(false);
+  }, [loadingMore, loading, games.length, total, fetchLibrary]);
+
+  async function addToCollection(externalId: number, status = 'OWNED') {
+    const game = await api.addGame(externalId);
+    await api.updateStatus(game.id, status);
+    await fetchLibrary(true);
+  }
+
+  async function changeStatus(gameId: string, status: string) {
+    await api.updateStatus(gameId, status);
+    await fetchLibrary(true);
+  }
+
+  async function updateStatus(gameId: string, status: string) {
+    await api.updateStatus(gameId, status);
+  }
+
+  async function updateHours(gameId: string, hoursPlayed: number) {
+    await api.updateHours(gameId, hoursPlayed);
+    await fetchLibrary(true);
+  }
+
+  async function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }) {
+    await api.updateNotes(gameId, data);
+    await fetchLibrary(true);
+  }
+
+  async function removeGame(gameId: string) {
+    await api.removeGame(gameId);
+    await fetchLibrary(true);
+  }
+
+  return {
+    games, total, loading, loadingMore, isOffline,
+    fetchLibrary, loadMore,
+    addToCollection, changeStatus, updateStatus, updateHours, updateNotes, removeGame,
+    searchQuery, setSearchQuery,
+    statusFilter, setStatusFilter,
+    platformFilter, setPlatformFilter,
+    genreFilter, setGenreFilter,
+    sortKey, setSortKey,
+  };
+}
+
+export function useDeals() {
+  const [recommendations, setRecommendations] = useState<DealRecommendation[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const fetchDeals = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getDeals();
+      setRecommendations(data.recommendations);
+      setMessage(data.message ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al obtener ofertas');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  async function addToCollection(externalId: number, status = 'OWNED') {
-    const game = await api.addGame(externalId);
-    await api.updateStatus(game.id, status);
-    await fetchLibrary();
-  }
-
-  async function changeStatus(gameId: string, status: string) {
-    await api.updateStatus(gameId, status);
-    await fetchLibrary();
-  }
-
-  async function updateHours(gameId: string, hoursPlayed: number) {
-    await api.updateHours(gameId, hoursPlayed);
-    await fetchLibrary();
-  }
-
-  async function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }) {
-    await api.updateNotes(gameId, data);
-    await fetchLibrary();
-  }
-
-  async function removeGame(gameId: string) {
-    await api.removeGame(gameId);
-    await fetchLibrary();
-  }
-
-  return { games, loading, isOffline, fetchLibrary, addToCollection, changeStatus, updateHours, updateNotes, removeGame };
+  return { recommendations, loading, error, message, fetchDeals };
 }
 
 export function useDashboard() {

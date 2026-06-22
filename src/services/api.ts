@@ -1,4 +1,4 @@
-import type { DashboardStats, Game, IGDBGameResult, UserGame } from '../types';
+import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame } from '../types';
 import { Platform } from 'react-native';
 
 const API_BASE = 'https://gamevaultserver-production.up.railway.app/api';
@@ -49,8 +49,26 @@ export function addGame(externalId: number) {
   });
 }
 
-export function getLibrary() {
-  return request<UserGame[]>('/games');
+export function getLibrary(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  platform?: string;
+  genre?: string;
+  sort?: string;
+}) {
+  const q = new URLSearchParams();
+  if (params) {
+    if (params.page) q.set('page', String(params.page));
+    if (params.limit) q.set('limit', String(params.limit));
+    if (params.search) q.set('search', params.search);
+    if (params.status) q.set('status', params.status);
+    if (params.platform) q.set('platform', params.platform);
+    if (params.genre) q.set('genre', params.genre);
+    if (params.sort) q.set('sort', params.sort);
+  }
+  return request<{ games: UserGame[]; total: number; page: number; limit: number }>(`/games?${q.toString()}`);
 }
 
 export function updateStatus(gameId: string, status: string) {
@@ -78,12 +96,35 @@ export function getDashboard() {
   return request<DashboardStats>('/dashboard');
 }
 
+export function getDeals() {
+  return request<{ recommendations: DealRecommendation[]; message?: string }>('/deals');
+}
+
 export function getUserGameIds() {
   return request<{ ids: number[] }>('/games/ids');
 }
 
 export function removeGame(gameId: string) {
   return request<{ success: boolean }>(`/games/${gameId}`, { method: 'DELETE' });
+}
+
+export function exportUrl(params?: {
+  search?: string;
+  status?: string;
+  platform?: string;
+  genre?: string;
+  sort?: string;
+}): string {
+  const q = new URLSearchParams();
+  if (params) {
+    if (params.search) q.set('search', params.search);
+    if (params.status) q.set('status', params.status);
+    if (params.platform) q.set('platform', params.platform);
+    if (params.genre) q.set('genre', params.genre);
+    if (params.sort) q.set('sort', params.sort);
+  }
+  const token = authToken ? `&token=${encodeURIComponent(authToken)}` : '';
+  return `${API_BASE}/export?${q.toString()}${token}`;
 }
 
 export function imageProxyUrl(coverUrl: string): string {

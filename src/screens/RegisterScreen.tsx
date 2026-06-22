@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/AuthContext';
 
 export default function RegisterScreen({ navigation }: any) {
@@ -12,18 +13,18 @@ export default function RegisterScreen({ navigation }: any) {
 
   async function handleRegister() {
     if (!email || !password) {
-      Alert.alert('Error', 'Completa todos los campos');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Completa todos los campos', position: 'bottom', visibilityTime: 2000 });
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'La contraseña debe tener al menos 6 caracteres', position: 'bottom', visibilityTime: 2000 });
       return;
     }
     setLoading(true);
     try {
       await register(email, password);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Error al registrarse');
+      Toast.show({ type: 'error', text1: 'Error', text2: err instanceof Error ? err.message : 'Error al registrarse', position: 'bottom', visibilityTime: 3000 });
     } finally {
       setLoading(false);
     }

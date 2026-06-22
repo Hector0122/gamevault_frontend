@@ -1,9 +1,10 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, useWindowDimensions, TextInput } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useState, useMemo } from 'react';
+import Toast from 'react-native-toast-message';
 import { useLibrary } from '../hooks/useGames';
 import type { GameStatus } from '../types';
-import type { SearchStackParamList } from '../navigation/AppNavigator';
+import type { SearchStackParamList, LibraryStackParamList } from '../navigation/AppNavigator';
 import { imageProxyUrl } from '../services/api';
 
 const statuses: { key: GameStatus; label: string }[] = [
@@ -21,24 +22,49 @@ function fmtMinutes(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-export default function GameDetailScreen() {
-  const route = useRoute<RouteProp<SearchStackParamList, 'GameDetail'>>();
-  const navigation = useNavigation();
-  const { game, ownedIds } = route.params;
-  const { addToCollection } = useLibrary();
-  const { width } = useWindowDimensions();
-  const [selectedStatus, setSelectedStatus] = useState<GameStatus>('OWNED');
-  const [imgFailed, setImgFailed] = useState(false);
+function fmtDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 
-  const isOwned = useMemo(() => ownedIds?.includes(game.externalId), [ownedIds, game.externalId]);
+export default function GameDetailScreen() {
+  const route = useRoute<RouteProp<SearchStackParamList & LibraryStackParamList, 'GameDetail'>>();
+  const navigation = useNavigation();
+  const { game, ownedIds, userGame } = route.params;
+  const { addToCollection, updateStatus, updateNotes, updateHours } = useLibrary();
+  const { width } = useWindowDimensions();
+  const [selectedStatus, setSelectedStatus] = useState<GameStatus>(userGame?.status ?? 'OWNED');
+  const [imgFailed, setImgFailed] = useState(false);
+  const [rating, setRating] = useState(userGame?.rating ?? 0);
+  const [hoursInput, setHoursInput] = useState(String(userGame?.hoursPlayed ?? ''));
+  const [notesInput, setNotesInput] = useState(userGame?.notes ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const isOwned = useMemo(
+    () => !!(userGame || ownedIds?.includes(game.externalId)),
+    [ownedIds, game.externalId, userGame],
+  );
 
   async function handleAdd() {
+    setSaving(true);
     try {
-      await addToCollection(game.externalId, selectedStatus);
-      Alert.alert('Agregado', `${game.title} agregado como "${statuses.find(s => s.key === selectedStatus)?.label}"`);
+      if (userGame) {
+        await updateStatus(userGame.gameId, selectedStatus);
+        await updateNotes(userGame.gameId, { rating: rating || null, notes: notesInput || null });
+        const hours = parseFloat(hoursInput);
+        if (!isNaN(hours) && hours >= 0) {
+          await updateHours(userGame.gameId, hours);
+        }
+        Toast.show({ type: 'success', text1: 'Actualizado', text2: `${game.title} actualizado correctamente`, position: 'bottom', visibilityTime: 2000 });
+      } else {
+        await addToCollection(game.externalId, selectedStatus);
+        Toast.show({ type: 'success', text1: 'Agregado', text2: `${game.title} agregado como "${statuses.find(s => s.key === selectedStatus)?.label}"`, position: 'bottom', visibilityTime: 2000 });
+      }
       navigation.goBack();
     } catch {
-      Alert.alert('Error', 'No se pudo agregar el juego');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'No se pudo guardar', position: 'bottom', visibilityTime: 2000 });
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -118,6 +144,59 @@ export default function GameDetailScreen() {
           </View>
         ) : null}
 
+        {userGame && (
+          <>
+            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Calificación</Text>
+            <View style={{ flexDirection: 'row', gap: 2, marginBottom: 16 }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <TouchableOpacity key={i} onPress={() => setRating(i === rating ? 0 : i)}>
+                  <Text style={{ fontSize: 20, color: i <= rating ? '#f59e0b' : '#374151' }}>★</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Horas jugadas</Text>
+            <TextInput
+              style={{
+                backgroundColor: '#1f2937', borderWidth: 1, borderColor: '#374151',
+                borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, color: '#fff', fontSize: 14,
+                marginBottom: 16,
+              }}
+              placeholder="0"
+              placeholderTextColor="#6b7280"
+              keyboardType="numeric"
+              value={hoursInput}
+              onChangeText={setHoursInput}
+            />
+
+            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Notas</Text>
+            <TextInput
+              style={{
+                backgroundColor: '#1f2937', borderWidth: 1, borderColor: '#374151',
+                borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, color: '#fff', fontSize: 14,
+                marginBottom: 16, minHeight: 60,
+              }}
+              placeholder="Notas personales..."
+              placeholderTextColor="#6b7280"
+              value={notesInput}
+              onChangeText={setNotesInput}
+              multiline
+            />
+          </>
+        )}
+
+        {userGame && (
+          <>
+            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Fechas</Text>
+            <Text style={{ color: '#d1d5db', fontSize: 13, marginBottom: 16 }}>
+              {userGame.startedAt ? `Iniciado: ${fmtDate(userGame.startedAt)}` : ''}
+              {userGame.startedAt && userGame.completedAt ? ' | ' : ''}
+              {userGame.completedAt ? `Completado: ${fmtDate(userGame.completedAt)}` : ''}
+              {!userGame.startedAt && !userGame.completedAt ? 'Sin registrar' : ''}
+            </Text>
+          </>
+        )}
+
         <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
           Estado
         </Text>
@@ -144,13 +223,14 @@ export default function GameDetailScreen() {
 
         <TouchableOpacity
           onPress={handleAdd}
+          disabled={saving}
           style={{
-            backgroundColor: isOwned ? '#374151' : '#059669',
+            backgroundColor: saving ? '#374151' : '#059669',
             paddingVertical: 14, borderRadius: 8, alignItems: 'center',
           }}
         >
           <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-            {isOwned ? 'Actualizar estado' : 'Agregar a colección'}
+            {saving ? 'Guardando...' : userGame ? 'Guardar cambios' : 'Agregar a colección'}
           </Text>
         </TouchableOpacity>
       </View>

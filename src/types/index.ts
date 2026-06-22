@@ -38,6 +38,21 @@ export interface DashboardStats {
   estimatedHoursRemaining: number;
 }
 
+export interface DealRecommendation {
+  title: string;
+  inLibrary: boolean;
+  coverUrl: string | null;
+  genres: string[];
+  platforms: string[];
+  deal: {
+    currentPrice: number;
+    regularPrice: number;
+    discount: number;
+    store: string;
+    url: string;
+  } | null;
+}
+
 export interface IGDBGameResult {
   id: number;
   name: string;

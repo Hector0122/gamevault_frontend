@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }: any) {
@@ -12,14 +13,14 @@ export default function LoginScreen({ navigation }: any) {
 
   async function handleLogin() {
     if (!email || !password) {
-      Alert.alert('Error', 'Completa todos los campos');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Completa todos los campos', position: 'bottom', visibilityTime: 2000 });
       return;
     }
     setLoading(true);
     try {
       await login(email, password);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Error al iniciar sesión');
+      Toast.show({ type: 'error', text1: 'Error', text2: err instanceof Error ? err.message : 'Error al iniciar sesión', position: 'bottom', visibilityTime: 3000 });
     } finally {
       setLoading(false);
     }

@@ -8,9 +8,10 @@ interface Props {
   cardWidth: number;
   onPress?: () => void;
   owned?: boolean;
+  onQuickAdd?: () => void;
 }
 
-export default function GameCard({ game, cardWidth, onPress, owned }: Props) {
+export default function GameCard({ game, cardWidth, onPress, owned, onQuickAdd }: Props) {
   const [failed, setFailed] = useState(false);
 
   return (
@@ -32,6 +33,14 @@ export default function GameCard({ game, cardWidth, onPress, owned }: Props) {
           <View style={{ position: 'absolute', top: 4, right: 4, backgroundColor: '#10b981', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
             <Text style={{ color: '#fff', fontSize: 9, fontWeight: '600' }}>✓</Text>
           </View>
+        )}
+        {!owned && onQuickAdd && (
+          <TouchableOpacity
+            onPress={(e) => { e.stopPropagation?.(); onQuickAdd(); }}
+            style={{ position: 'absolute', top: 4, right: 4, backgroundColor: '#059669', width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700', lineHeight: 16 }}>+</Text>
+          </TouchableOpacity>
         )}
         <View style={{ paddingHorizontal: 6, paddingVertical: 8 }}>
           <Text style={{ fontSize: 11, fontWeight: '600', color: '#fff' }} numberOfLines={1}>
