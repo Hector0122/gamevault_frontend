@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useRef } from 'react';
 import { View, Text, FlatList, RefreshControl, ActivityIndicator, Image, TouchableOpacity, TextInput, Alert, Linking } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -68,10 +68,13 @@ export default function LibraryScreen() {
   const [hoursInput, setHoursInput] = useState('');
   const [notesInput, setNotesInput] = useState('');
 
+  const fetchLibraryRef = useRef(fetchLibrary);
+  fetchLibraryRef.current = fetchLibrary;
+
   useFocusEffect(
     useCallback(() => {
-      fetchLibrary(true);
-    }, [fetchLibrary])
+      fetchLibraryRef.current(true);
+    }, [])
   );
 
   const platforms = useMemo(() => {
