@@ -75,8 +75,8 @@ export interface WishlistDeal {
   title: string;
   coverUrl: string | null;
   genres: string[];
-  currentPrice: number;
-  regularPrice: number;
+  currentPrice: number | null;
+  regularPrice: number | null;
   discount: number;
   store: string;
   url: string;

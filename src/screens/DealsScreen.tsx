@@ -113,22 +113,24 @@ export default function DealsScreen() {
               </Text>
             )}
 
-            <View style={{ backgroundColor: '#f59e0b20', borderWidth: 1, borderColor: '#f59e0b40', borderRadius: 6, padding: 8, marginTop: 6 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={{ color: '#f59e0b', fontSize: 12, fontWeight: '600' }}>
-                  🔥 {item.discount}% OFF
-                </Text>
-                <Text style={{ color: '#6b7280', fontSize: 11, textDecorationLine: 'line-through' }}>
-                  ${item.regularPrice.toFixed(2)}
-                </Text>
-                <Text style={{ color: '#34d399', fontSize: 13, fontWeight: '700' }}>
-                  ${item.currentPrice.toFixed(2)}
+            {item.currentPrice != null && item.regularPrice != null && (
+              <View style={{ backgroundColor: '#f59e0b20', borderWidth: 1, borderColor: '#f59e0b40', borderRadius: 6, padding: 8, marginTop: 6 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={{ color: '#f59e0b', fontSize: 12, fontWeight: '600' }}>
+                    🔥 {item.discount}% OFF
+                  </Text>
+                  <Text style={{ color: '#6b7280', fontSize: 11, textDecorationLine: 'line-through' }}>
+                    ${item.regularPrice.toFixed(2)}
+                  </Text>
+                  <Text style={{ color: '#34d399', fontSize: 13, fontWeight: '700' }}>
+                    ${item.currentPrice.toFixed(2)}
+                  </Text>
+                </View>
+                <Text style={{ color: '#9ca3af', fontSize: 10, marginTop: 2 }}>
+                  en {item.store}
                 </Text>
               </View>
-              <Text style={{ color: '#9ca3af', fontSize: 10, marginTop: 2 }}>
-                en {item.store}
-              </Text>
-            </View>
+            )}
           </View>
         </View>
       </TouchableOpacity>

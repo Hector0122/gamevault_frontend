@@ -332,16 +332,34 @@ export default function LibraryScreen() {
         </View>
       </View>
 
-      <TextInput
-        style={{
-          backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 8,
-          paddingHorizontal: 12, paddingVertical: 10, color: '#fff', fontSize: 14, marginBottom: 12,
-        }}
-        placeholder="Buscar en biblioteca..."
-        placeholderTextColor="#6b7280"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+        <TextInput
+          style={{
+            flex: 1,
+            backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 8,
+            paddingHorizontal: 12, paddingVertical: 10, color: '#fff', fontSize: 14,
+          }}
+          placeholder="Buscar en biblioteca..."
+          placeholderTextColor="#6b7280"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={() => fetchLibrary(true)}
+        />
+        <TouchableOpacity
+          onPress={() => fetchLibrary(true)}
+          disabled={loading}
+          style={{
+            backgroundColor: '#059669',
+            paddingHorizontal: 16,
+            borderRadius: 8,
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '500', fontSize: 13 }}>
+            {loading ? '...' : 'Buscar'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {isOffline && (
         <View style={{ backgroundColor: '#f59e0b20', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 8, padding: 8, marginBottom: 12 }}>

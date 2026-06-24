@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
-import { useDebounce } from './useDebounce';
 import type {
   DashboardStats,
   DealRecommendation,
@@ -100,7 +99,6 @@ export function useLibrary() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   const [genreFilter, setGenreFilter] = useState<string | null>(null);
@@ -115,13 +113,13 @@ export function useLibrary() {
     (p: number) => ({
       page: p,
       limit: PAGE_LIMIT,
-      search: debouncedSearchQuery || undefined,
+      search: searchQuery || undefined,
       status: statusFilter ?? undefined,
       platform: platformFilter ?? undefined,
       genre: genreFilter ?? undefined,
       sort: sortKey,
     }),
-    [debouncedSearchQuery, statusFilter, platformFilter, genreFilter, sortKey],
+    [searchQuery, statusFilter, platformFilter, genreFilter, sortKey],
   );
 
   const fetchLibrary = useCallback(
