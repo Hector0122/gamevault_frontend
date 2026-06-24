@@ -1,7 +1,14 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
-import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame, WishlistDeal } from '../types';
+import { useDebounce } from './useDebounce';
+import type {
+  DashboardStats,
+  DealRecommendation,
+  IGDBGameResult,
+  UserGame,
+  WishlistDeal,
+} from '../types';
 
 const cache = createMMKV({ id: 'gamevault_cache' });
 
@@ -25,8 +32,6 @@ function loadCachedDashboard(): DashboardStats | null {
 function saveCachedDashboard(stats: DashboardStats) {
   cache.set(CACHE_DASHBOARD, JSON.stringify(stats));
 }
-
-const LIMIT = 20;
 
 export function useSearch() {
   const [results, setResults] = useState<IGDBGameResult[]>([]);
@@ -74,20 +79,34 @@ export function useSearch() {
     }
   }
 
-  return { results, loading, loadingMore, error, search, loadMore, ownedIds, fetchOwnedIds };
+  return {
+    results,
+    loading,
+    loadingMore,
+    error,
+    search,
+    loadMore,
+    ownedIds,
+    fetchOwnedIds,
+  };
 }
 
 export function useLibrary() {
-  const [games, setGames] = useState<UserGame[]>(() => loadCachedLibrary() ?? []);
+  const [games, setGames] = useState<UserGame[]>(
+    () => loadCachedLibrary() ?? [],
+  );
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   const [genreFilter, setGenreFilter] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<'recent' | 'title' | 'hours' | 'rating'>('recent');
+  const [sortKey, setSortKey] = useState<
+    'recent' | 'title' | 'hours' | 'rating'
+  >('recent');
 
   const nextPageRef = useRef(1);
   const PAGE_LIMIT = 50;
@@ -96,49 +115,52 @@ export function useLibrary() {
     (p: number) => ({
       page: p,
       limit: PAGE_LIMIT,
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
       status: statusFilter ?? undefined,
       platform: platformFilter ?? undefined,
       genre: genreFilter ?? undefined,
       sort: sortKey,
     }),
-    [searchQuery, statusFilter, platformFilter, genreFilter, sortKey],
+    [debouncedSearchQuery, statusFilter, platformFilter, genreFilter, sortKey],
   );
 
-  const fetchLibrary = useCallback(async (reset = true) => {
-    const p = reset ? 1 : nextPageRef.current;
-    if (reset) {
-      setLoading(true);
-      setGames([]);
-      nextPageRef.current = 1;
-    } else {
-      setLoadingMore(true);
-    }
-    try {
-      const data = await api.getLibrary(buildParams(p));
+  const fetchLibrary = useCallback(
+    async (reset = true) => {
+      const p = reset ? 1 : nextPageRef.current;
       if (reset) {
-        setGames(data.games);
-        saveCachedLibrary(data.games);
+        setLoading(true);
+        setGames([]);
+        nextPageRef.current = 1;
       } else {
-        setGames(prev => [...prev, ...data.games]);
+        setLoadingMore(true);
       }
-      setTotal(data.total);
-      nextPageRef.current = p + 1;
-      setIsOffline(false);
-    } catch {
-      if (reset) {
-        const cached = loadCachedLibrary();
-        if (cached) {
-          setGames(cached);
-          setTotal(cached.length);
+      try {
+        const data = await api.getLibrary(buildParams(p));
+        if (reset) {
+          setGames(data.games);
+          saveCachedLibrary(data.games);
+        } else {
+          setGames(prev => [...prev, ...data.games]);
         }
+        setTotal(data.total);
+        nextPageRef.current = p + 1;
+        setIsOffline(false);
+      } catch {
+        if (reset) {
+          const cached = loadCachedLibrary();
+          if (cached) {
+            setGames(cached);
+            setTotal(cached.length);
+          }
+        }
+        setIsOffline(true);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-      setIsOffline(true);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [buildParams]);
+    },
+    [buildParams],
+  );
 
   const loadMore = useCallback(() => {
     if (loadingMore || loading || games.length >= total) return;
@@ -148,7 +170,6 @@ export function useLibrary() {
   async function addToCollection(externalId: number, status = 'OWNED') {
     const game = await api.addGame(externalId);
     await api.updateStatus(game.id, status);
-    await fetchLibrary(true);
   }
 
   async function changeStatus(gameId: string, status: string) {
@@ -165,10 +186,16 @@ export function useLibrary() {
     await fetchLibrary(true);
   }
 
-  async function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }, silent = false) {
+  async function updateNotes(
+    gameId: string,
+    data: { rating?: number | null; notes?: string | null },
+    silent = false,
+  ) {
     await api.updateNotes(gameId, data);
     if (silent) {
-      setGames(prev => prev.map(g => (g.gameId === gameId ? { ...g, ...data } : g)));
+      setGames(prev =>
+        prev.map(g => (g.gameId === gameId ? { ...g, ...data } : g)),
+      );
     } else {
       await fetchLibrary(true);
     }
@@ -181,55 +208,111 @@ export function useLibrary() {
 
   async function updatePriority(gameId: string, priority: string | null) {
     await api.updatePriority(gameId, priority);
-    setGames(prev => prev.map(g => (g.gameId === gameId ? { ...g, priority: priority as any } : g)));
+    setGames(prev =>
+      prev.map(g =>
+        g.gameId === gameId ? { ...g, priority: priority as any } : g,
+      ),
+    );
   }
 
   return {
-    games, total, loading, loadingMore, isOffline,
-    fetchLibrary, loadMore,
-    addToCollection, changeStatus, updateStatus, updateHours, updateNotes, removeGame, updatePriority,
-    searchQuery, setSearchQuery,
-    statusFilter, setStatusFilter,
-    platformFilter, setPlatformFilter,
-    genreFilter, setGenreFilter,
-    sortKey, setSortKey,
+    games,
+    total,
+    loading,
+    loadingMore,
+    isOffline,
+    fetchLibrary,
+    loadMore,
+    addToCollection,
+    changeStatus,
+    updateStatus,
+    updateHours,
+    updateNotes,
+    removeGame,
+    updatePriority,
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
+    platformFilter,
+    setPlatformFilter,
+    genreFilter,
+    setGenreFilter,
+    sortKey,
+    setSortKey,
   };
 }
 
 export function useDeals() {
-  const [recommendations, setRecommendations] = useState<DealRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<DealRecommendation[]>(
+    [],
+  );
   const [wishlistDeals, setWishlistDeals] = useState<WishlistDeal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const fetchDeals = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const [recData] = await Promise.all([
-        api.getDeals(),
-      ]);
-      setRecommendations(recData.recommendations);
-      setMessage(recData.message ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al obtener ofertas');
-    }
-    try {
-      const wlData = await api.getWishlistDeals();
-      setWishlistDeals(wlData.deals);
-    } catch {
-      // wishlist deals is optional — ignore errors
-    } finally {
-      setLoading(false);
-    }
+
+    const safe = <T>(fn: () => T) => {
+      if (mountedRef.current) return fn();
+    };
+    const setRecs = (v: DealRecommendation[]) =>
+      safe(() => setRecommendations(v));
+    const setMsg = (v: string | null) => safe(() => setMessage(v));
+    const setErr = (v: string | null) => safe(() => setError(v));
+    const setWL = (v: WishlistDeal[]) => safe(() => setWishlistDeals(v));
+    const setLoad = (v: boolean) => safe(() => setLoading(v));
+
+    setLoad(true);
+    setErr(null);
+
+    await Promise.allSettled([
+      api
+        .getDeals()
+        .then(data => {
+          setRecs(data.recommendations);
+          setMsg(data.message ?? null);
+        })
+        .catch(err => {
+          setErr(
+            err instanceof Error ? err.message : 'Error al obtener ofertas',
+          );
+        }),
+      api
+        .getWishlistDeals()
+        .then(data => {
+          setWL(data.deals);
+        })
+        .catch(() => {}),
+    ]);
+
+    setLoad(false);
   }, []);
 
-  return { recommendations, wishlistDeals, loading, error, message, fetchDeals };
+  return {
+    recommendations,
+    wishlistDeals,
+    loading,
+    error,
+    message,
+    fetchDeals,
+  };
 }
 
 export function useDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(() => loadCachedDashboard());
+  const [stats, setStats] = useState<DashboardStats | null>(() =>
+    loadCachedDashboard(),
+  );
   const [loading, setLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
 

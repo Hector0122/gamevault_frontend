@@ -341,7 +341,6 @@ export default function LibraryScreen() {
         placeholderTextColor="#6b7280"
         value={searchQuery}
         onChangeText={setSearchQuery}
-        onSubmitEditing={() => fetchLibrary(true)}
       />
 
       {isOffline && (
