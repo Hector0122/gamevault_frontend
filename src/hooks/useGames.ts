@@ -98,6 +98,12 @@ export function useLibrary() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const initialCache = loadCachedLibrary();
+  const [libraryTotalCount, setLibraryTotalCount] = useState(() =>
+    initialCache ? initialCache.length : 0,
+  );
+  const [libraryTotalCountInitialized, setLibraryTotalCountInitialized] =
+    useState(() => !!initialCache);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
@@ -107,6 +113,7 @@ export function useLibrary() {
   >('recent');
 
   const nextPageRef = useRef(1);
+  const fetchingRef = useRef(false);
   const PAGE_LIMIT = 50;
 
   const buildParams = useCallback(
@@ -124,6 +131,8 @@ export function useLibrary() {
 
   const fetchLibrary = useCallback(
     async (reset = true) => {
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
       const p = reset ? 1 : nextPageRef.current;
       if (reset) {
         setLoading(true);
@@ -143,21 +152,28 @@ export function useLibrary() {
         setTotal(data.total);
         nextPageRef.current = p + 1;
         setIsOffline(false);
+        if (!searchQuery && !statusFilter && !platformFilter && !genreFilter) {
+          setLibraryTotalCount(data.total);
+          setLibraryTotalCountInitialized(true);
+        }
       } catch {
         if (reset) {
           const cached = loadCachedLibrary();
           if (cached) {
             setGames(cached);
             setTotal(cached.length);
+            setLibraryTotalCount(cached.length);
+            setLibraryTotalCountInitialized(true);
           }
         }
         setIsOffline(true);
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        fetchingRef.current = false;
       }
     },
-    [buildParams],
+    [buildParams, searchQuery, statusFilter, platformFilter, genreFilter],
   );
 
   const loadMore = useCallback(() => {
@@ -238,6 +254,8 @@ export function useLibrary() {
     setGenreFilter,
     sortKey,
     setSortKey,
+    libraryTotalCount,
+    libraryTotalCountInitialized,
   };
 }
 

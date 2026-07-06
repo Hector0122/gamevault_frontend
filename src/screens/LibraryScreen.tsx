@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -100,6 +100,8 @@ export default function LibraryScreen() {
     updatePriority,
     searchQuery,
     setSearchQuery,
+    libraryTotalCount,
+    libraryTotalCountInitialized,
     statusFilter,
     setStatusFilter,
     platformFilter,
@@ -124,6 +126,17 @@ export default function LibraryScreen() {
       fetchLibraryRef.current(true);
     }, []),
   );
+
+  const hasActiveFilters =
+    searchQuery.trim() !== '' || statusFilter || platformFilter || genreFilter;
+
+  const prevHasActiveFilters = useRef(hasActiveFilters);
+  useEffect(() => {
+    if (prevHasActiveFilters.current && !hasActiveFilters) {
+      fetchLibrary(true);
+    }
+    prevHasActiveFilters.current = hasActiveFilters;
+  }, [hasActiveFilters, fetchLibrary]);
 
   const platforms = useMemo(() => {
     const set = new Set<string>();
@@ -230,10 +243,12 @@ export default function LibraryScreen() {
     );
   }
 
-  const hasActiveFilters =
-    searchQuery.trim() !== '' || statusFilter || platformFilter || genreFilter;
-
-  if (!loading && games.length === 0 && !hasActiveFilters) {
+  if (
+    !loading &&
+    !hasActiveFilters &&
+    libraryTotalCount === 0 &&
+    libraryTotalCountInitialized
+  ) {
     return (
       <View style={[styles.emptyContainer, topPadding]}>
         <Text style={styles.emptyText}>
