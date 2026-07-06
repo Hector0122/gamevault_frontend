@@ -1,4 +1,4 @@
-import { ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
@@ -72,7 +72,7 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
     Ofertas: '🏷️',
   };
   return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>
+    <Text style={focused ? styles.tabIconActive : styles.tabIconInactive}>
       {icons[label] ?? '📦'}
     </Text>
   );
@@ -84,6 +84,18 @@ export type RootStackParamList = {
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
+
+function renderLibraryIcon({ focused }: { focused: boolean }) {
+  return <TabIcon label="Biblioteca" focused={focused} />;
+}
+
+function renderSearchIcon({ focused }: { focused: boolean }) {
+  return <TabIcon label="Buscar" focused={focused} />;
+}
+
+function renderOfertasIcon({ focused }: { focused: boolean }) {
+  return <TabIcon label="Ofertas" focused={focused} />;
+}
 
 function MainTabs() {
   return (
@@ -102,23 +114,17 @@ function MainTabs() {
       <Tab.Screen
         name="Biblioteca"
         component={LibraryStack}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="Biblioteca" focused={focused} />,
-        }}
+        options={{ tabBarIcon: renderLibraryIcon }}
       />
       <Tab.Screen
         name="Buscar"
         component={SearchStack}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="Buscar" focused={focused} />,
-        }}
+        options={{ tabBarIcon: renderSearchIcon }}
       />
       <Tab.Screen
         name="Ofertas"
         component={DealsScreen}
-        options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="Ofertas" focused={focused} />,
-        }}
+        options={{ tabBarIcon: renderOfertasIcon }}
       />
     </Tab.Navigator>
   );
@@ -139,7 +145,9 @@ export default function AppNavigator() {
   const { token, loading } = useAuth();
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#10b981" style={{ flex: 1, backgroundColor: '#030712' }} />;
+    return (
+      <ActivityIndicator size="large" color="#10b981" style={styles.activity} />
+    );
   }
 
   if (!token) {
@@ -167,3 +175,18 @@ export default function AppNavigator() {
     </RootStack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconActive: {
+    fontSize: 20,
+    opacity: 1,
+  },
+  tabIconInactive: {
+    fontSize: 20,
+    opacity: 0.5,
+  },
+  activity: {
+    flex: 1,
+    backgroundColor: '#030712',
+  },
+});

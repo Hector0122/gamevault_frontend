@@ -1,5 +1,13 @@
 import { useEffect } from 'react';
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { useDashboard } from '../hooks/useGames';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,79 +26,157 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   if (loading && !stats) {
-    return <ActivityIndicator size="large" color="#10b981" style={{ flex: 1 }} />;
+    return (
+      <ActivityIndicator size="large" color="#10b981" style={styles.loading} />
+    );
   }
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#030712', paddingTop: 16, paddingHorizontal: 16 }}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchStats} tintColor="#10b981" />}
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={loading}
+          onRefresh={fetchStats}
+          tintColor="#10b981"
+        />
+      }
     >
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', marginBottom: 16 }}>
-        Dashboard
-      </Text>
+      <Text style={styles.title}>Dashboard</Text>
 
       {isOffline && (
-        <View style={{ backgroundColor: '#f59e0b20', borderWidth: 1, borderColor: '#f59e0b', borderRadius: 8, padding: 8, marginBottom: 12 }}>
-          <Text style={{ color: '#f59e0b', fontSize: 12, textAlign: 'center' }}>
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>
             Sin conexión — mostrando datos guardados
           </Text>
         </View>
       )}
 
       {/* Stats grid */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+      <View style={styles.statsGrid}>
         {cards.map(({ key, label }) => (
-          <View
-            key={key}
-            style={{
-              width: '47%', backgroundColor: '#111827', borderWidth: 1,
-              borderColor: '#1f2937', borderRadius: 8, padding: 16, alignItems: 'center',
-            }}
-          >
-            <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#34d399' }}>
-              {(stats as any)?.[key] ?? 0}
-            </Text>
-            <Text style={{ fontSize: 14, color: '#9ca3af', marginTop: 4 }}>{label}</Text>
+          <View key={key} style={styles.statCard}>
+            <Text style={styles.statNumber}>{(stats as any)?.[key] ?? 0}</Text>
+            <Text style={styles.statLabel}>{label}</Text>
           </View>
         ))}
       </View>
 
       {/* Backlog card */}
       {stats && (
-        <View
-          style={{
-            backgroundColor: '#111827', borderWidth: 1, borderColor: '#f59e0b',
-            borderRadius: 8, padding: 16, marginTop: 16, flexDirection: 'row',
-            justifyContent: 'space-between', alignItems: 'center',
-          }}
-        >
+        <View style={styles.backlogCard}>
           <View>
-            <Text style={{ fontSize: 14, color: '#f59e0b', fontWeight: '600' }}>
-              Tiempo restante estimado
-            </Text>
-            <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+            <Text style={styles.backlogTitle}>Tiempo restante estimado</Text>
+            <Text style={styles.backlogSubtitle}>
               Por jugar (pendientes + en curso)
             </Text>
           </View>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fbbf24' }}>
+          <Text style={styles.backlogHours}>
             {stats.estimatedHoursRemaining}h
           </Text>
         </View>
       )}
 
-      <TouchableOpacity
-        onPress={logout}
-        style={{
-          backgroundColor: '#dc2626', paddingVertical: 14, borderRadius: 8,
-          alignItems: 'center', marginTop: 24, marginBottom: 40,
-        }}
-      >
-        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Cerrar sesión</Text>
+      <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+        <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#030712',
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 16,
+  },
+  offlineBanner: {
+    backgroundColor: '#f59e0b20',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 12,
+  },
+  offlineText: {
+    color: '#f59e0b',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  statCard: {
+    width: '47%',
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#34d399',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 4,
+  },
+  backlogCard: {
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backlogTitle: {
+    fontSize: 14,
+    color: '#f59e0b',
+    fontWeight: '600',
+  },
+  backlogSubtitle: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  backlogHours: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fbbf24',
+  },
+  logoutButton: {
+    backgroundColor: '#dc2626',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 40,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, useWindowDimensions, TextInput } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, useWindowDimensions, TextInput, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useState, useMemo } from 'react';
 import Toast from 'react-native-toast-message';
@@ -73,95 +73,91 @@ export default function GameDetailScreen() {
     : null;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#030712' }}>
+    <ScrollView style={styles.container}>
       {game.coverUrl && !imgFailed ? (
         <Image
           source={{ uri: imageProxyUrl(game.coverUrl) }}
-          style={{ width, height: 300 }}
+          style={[styles.coverImage, { width }]}
           resizeMode="cover"
           onError={() => setImgFailed(true)}
         />
       ) : (
-        <View style={{ width, height: 300, backgroundColor: '#374151', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: '#9ca3af' }}>Sin imagen</Text>
+        <View style={[styles.coverPlaceholder, { width }]}>
+          <Text style={styles.placeholderText}>Sin imagen</Text>
         </View>
       )}
 
-      <View style={{ padding: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff', flex: 1 }}>
+      <View style={styles.content}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>
             {game.title}
           </Text>
           {isOwned && (
-            <View style={{ backgroundColor: '#10b981', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>En colección ✓</Text>
+            <View style={styles.ownedBadge}>
+              <Text style={styles.ownedBadgeText}>En colección ✓</Text>
             </View>
           )}
         </View>
 
         {releaseYear && (
-          <Text style={{ color: '#6b7280', fontSize: 14, marginBottom: 12 }}>
+          <Text style={styles.releaseYear}>
             Lanzamiento: {releaseYear}
           </Text>
         )}
 
         {game.genres.length > 0 && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          <View style={styles.genresContainer}>
             {game.genres.map((g) => (
-              <View key={g} style={{ backgroundColor: '#374151', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                <Text style={{ color: '#d1d5db', fontSize: 12 }}>{g}</Text>
+              <View key={g} style={styles.genrePill}>
+                <Text style={styles.genreText}>{g}</Text>
               </View>
             ))}
           </View>
         )}
 
         {game.platforms.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Plataformas</Text>
-            <Text style={{ color: '#d1d5db', fontSize: 14 }}>{game.platforms.join(', ')}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Plataformas</Text>
+            <Text style={styles.sectionText}>{game.platforms.join(', ')}</Text>
           </View>
         )}
 
         {game.description ? (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Sinopsis</Text>
-            <Text style={{ color: '#d1d5db', fontSize: 14, lineHeight: 20 }}>{game.description}</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Sinopsis</Text>
+            <Text style={styles.descriptionText}>{game.description}</Text>
           </View>
         ) : null}
 
         {(game.timeToBeatHastly || game.timeToBeatNormally || game.timeToBeatCompletely) ? (
-          <View style={{ marginBottom: 16 }}>
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Duración estimada</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Duración estimada</Text>
             {game.timeToBeatHastly && (
-              <Text style={{ color: '#d1d5db', fontSize: 13 }}>Rápido: {fmtMinutes(game.timeToBeatHastly)}</Text>
+              <Text style={styles.durationText}>Rápido: {fmtMinutes(game.timeToBeatHastly)}</Text>
             )}
             {game.timeToBeatNormally && (
-              <Text style={{ color: '#d1d5db', fontSize: 13 }}>Normal: {fmtMinutes(game.timeToBeatNormally)}</Text>
+              <Text style={styles.durationText}>Normal: {fmtMinutes(game.timeToBeatNormally)}</Text>
             )}
             {game.timeToBeatCompletely && (
-              <Text style={{ color: '#d1d5db', fontSize: 13 }}>Completista: {fmtMinutes(game.timeToBeatCompletely)}</Text>
+              <Text style={styles.durationText}>Completista: {fmtMinutes(game.timeToBeatCompletely)}</Text>
             )}
           </View>
         ) : null}
 
         {userGame && (
           <>
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Calificación</Text>
-            <View style={{ flexDirection: 'row', gap: 2, marginBottom: 16 }}>
+            <Text style={styles.sectionLabel}>Calificación</Text>
+            <View style={styles.ratingContainer}>
               {[1, 2, 3, 4, 5].map((i) => (
                 <TouchableOpacity key={i} onPress={() => setRating(i === rating ? 0 : i)}>
-                  <Text style={{ fontSize: 20, color: i <= rating ? '#f59e0b' : '#374151' }}>★</Text>
+                  <Text style={i <= rating ? styles.starFilled : styles.starEmpty}>★</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Horas jugadas</Text>
+            <Text style={styles.sectionLabel}>Horas jugadas</Text>
             <TextInput
-              style={{
-                backgroundColor: '#1f2937', borderWidth: 1, borderColor: '#374151',
-                borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, color: '#fff', fontSize: 14,
-                marginBottom: 16,
-              }}
+              style={styles.input}
               placeholder="0"
               placeholderTextColor="#6b7280"
               keyboardType="numeric"
@@ -169,13 +165,9 @@ export default function GameDetailScreen() {
               onChangeText={setHoursInput}
             />
 
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Notas</Text>
+            <Text style={styles.sectionLabel}>Notas</Text>
             <TextInput
-              style={{
-                backgroundColor: '#1f2937', borderWidth: 1, borderColor: '#374151',
-                borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, color: '#fff', fontSize: 14,
-                marginBottom: 16, minHeight: 60,
-              }}
+              style={styles.inputMultiline}
               placeholder="Notas personales..."
               placeholderTextColor="#6b7280"
               value={notesInput}
@@ -187,8 +179,8 @@ export default function GameDetailScreen() {
 
         {userGame && (
           <>
-            <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 6 }}>Fechas</Text>
-            <Text style={{ color: '#d1d5db', fontSize: 13, marginBottom: 16 }}>
+            <Text style={styles.sectionLabel}>Fechas</Text>
+            <Text style={styles.datesText}>
               {userGame.startedAt ? `Iniciado: ${fmtDate(userGame.startedAt)}` : ''}
               {userGame.startedAt && userGame.completedAt ? ' | ' : ''}
               {userGame.completedAt ? `Completado: ${fmtDate(userGame.completedAt)}` : ''}
@@ -197,23 +189,19 @@ export default function GameDetailScreen() {
           </>
         )}
 
-        <Text style={{ color: '#9ca3af', fontSize: 14, fontWeight: '600', marginBottom: 8 }}>
+        <Text style={styles.statusLabel}>
           Estado
         </Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+        <View style={styles.statusContainer}>
           {statuses.map((s) => {
             const active = selectedStatus === s.key;
             return (
               <TouchableOpacity
                 key={s.key}
                 onPress={() => setSelectedStatus(s.key)}
-                style={{
-                  paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1,
-                  borderColor: active ? '#059669' : '#374151',
-                  backgroundColor: active ? '#065f46' : 'transparent',
-                }}
+                style={[styles.statusButtonBase, active ? styles.statusButtonActive : styles.statusButtonInactive]}
               >
-                <Text style={{ color: active ? '#fff' : '#9ca3af', fontWeight: active ? '600' : '400' }}>
+                <Text style={active ? styles.statusTextActive : styles.statusTextInactive}>
                   {s.label}
                 </Text>
               </TouchableOpacity>
@@ -224,12 +212,9 @@ export default function GameDetailScreen() {
         <TouchableOpacity
           onPress={handleAdd}
           disabled={saving}
-          style={{
-            backgroundColor: saving ? '#374151' : '#059669',
-            paddingVertical: 14, borderRadius: 8, alignItems: 'center',
-          }}
+          style={[styles.saveButtonBase, saving ? styles.saveButtonDisabled : styles.saveButtonActive]}
         >
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+          <Text style={styles.saveButtonText}>
             {saving ? 'Guardando...' : userGame ? 'Guardar cambios' : 'Agregar a colección'}
           </Text>
         </TouchableOpacity>
@@ -237,3 +222,182 @@ export default function GameDetailScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#030712',
+  },
+  coverImage: {
+    height: 300,
+  },
+  coverPlaceholder: {
+    height: 300,
+    backgroundColor: '#374151',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    color: '#9ca3af',
+  },
+  content: {
+    padding: 16,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    flex: 1,
+  },
+  ownedBadge: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  ownedBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  releaseYear: {
+    color: '#6b7280',
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  genresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  genrePill: {
+    backgroundColor: '#374151',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  genreText: {
+    color: '#d1d5db',
+    fontSize: 12,
+  },
+  section: {
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    color: '#9ca3af',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  sectionText: {
+    color: '#d1d5db',
+    fontSize: 14,
+  },
+  descriptionText: {
+    color: '#d1d5db',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  durationText: {
+    color: '#d1d5db',
+    fontSize: 13,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    gap: 2,
+    marginBottom: 16,
+  },
+  starFilled: {
+    fontSize: 20,
+    color: '#f59e0b',
+  },
+  starEmpty: {
+    fontSize: 20,
+    color: '#374151',
+  },
+  input: {
+    backgroundColor: '#1f2937',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  inputMultiline: {
+    backgroundColor: '#1f2937',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 16,
+    minHeight: 60,
+  },
+  datesText: {
+    color: '#d1d5db',
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  statusLabel: {
+    color: '#9ca3af',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  statusButtonBase: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  statusButtonActive: {
+    borderColor: '#059669',
+    backgroundColor: '#065f46',
+  },
+  statusButtonInactive: {
+    borderColor: '#374151',
+    backgroundColor: 'transparent',
+  },
+  statusTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  statusTextInactive: {
+    color: '#9ca3af',
+    fontWeight: '400',
+  },
+  saveButtonBase: {
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveButtonActive: {
+    backgroundColor: '#059669',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#374151',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

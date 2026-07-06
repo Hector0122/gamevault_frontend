@@ -1,5 +1,10 @@
-import type { DashboardStats, DealRecommendation, Game, IGDBGameResult, UserGame } from '../types';
-import { Platform } from 'react-native';
+import type {
+  DashboardStats,
+  DealRecommendation,
+  Game,
+  IGDBGameResult,
+  UserGame,
+} from '../types';
 
 const API_BASE = 'https://gamevaultserver-production.up.railway.app/api';
 
@@ -10,9 +15,11 @@ export function setToken(token: string | null) {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
   if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+    headers.Authorization = `Bearer ${authToken}`;
   }
   const res = await fetch(`${API_BASE}${url}`, { headers, ...options });
   if (!res.ok) {
@@ -24,22 +31,30 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 
 // Auth
 export function login(email: string, password: string) {
-  return request<{ token: string; user: { id: string; email: string } }>('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
+  return request<{ token: string; user: { id: string; email: string } }>(
+    '/auth/login',
+    {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    },
+  );
 }
 
 export function register(email: string, password: string) {
-  return request<{ token: string; user: { id: string; email: string } }>('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
+  return request<{ token: string; user: { id: string; email: string } }>(
+    '/auth/register',
+    {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    },
+  );
 }
 
 // Games
 export function searchGames(query: string, offset = 0) {
-  return request<IGDBGameResult[]>(`/search?q=${encodeURIComponent(query)}&offset=${offset}`);
+  return request<IGDBGameResult[]>(
+    `/search?q=${encodeURIComponent(query)}&offset=${offset}`,
+  );
 }
 
 export function addGame(externalId: number) {
@@ -68,7 +83,12 @@ export function getLibrary(params?: {
     if (params.genre) q.set('genre', params.genre);
     if (params.sort) q.set('sort', params.sort);
   }
-  return request<{ games: UserGame[]; total: number; page: number; limit: number }>(`/games?${q.toString()}`);
+  return request<{
+    games: UserGame[];
+    total: number;
+    page: number;
+    limit: number;
+  }>(`/games?${q.toString()}`);
 }
 
 export function updateStatus(gameId: string, status: string) {
@@ -78,7 +98,10 @@ export function updateStatus(gameId: string, status: string) {
   });
 }
 
-export function updateNotes(gameId: string, data: { rating?: number | null; notes?: string | null }) {
+export function updateNotes(
+  gameId: string,
+  data: { rating?: number | null; notes?: string | null },
+) {
   return request<{ success: boolean }>(`/games/${gameId}/notes`, {
     method: 'PATCH',
     body: JSON.stringify(data),
@@ -97,11 +120,15 @@ export function getDashboard() {
 }
 
 export function getDeals() {
-  return request<{ recommendations: DealRecommendation[]; message?: string }>('/deals');
+  return request<{ recommendations: DealRecommendation[]; message?: string }>(
+    '/deals',
+  );
 }
 
 export function getWishlistDeals() {
-  return request<{ deals: import('../types').WishlistDeal[] }>('/deals/wishlist');
+  return request<{ deals: import('../types').WishlistDeal[] }>(
+    '/deals/wishlist',
+  );
 }
 
 export function getUserGameIds() {
@@ -109,7 +136,9 @@ export function getUserGameIds() {
 }
 
 export function removeGame(gameId: string) {
-  return request<{ success: boolean }>(`/games/${gameId}`, { method: 'DELETE' });
+  return request<{ success: boolean }>(`/games/${gameId}`, {
+    method: 'DELETE',
+  });
 }
 
 export function updatePriority(gameId: string, priority: string | null) {

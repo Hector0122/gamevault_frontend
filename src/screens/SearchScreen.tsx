@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, useWindowDimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, useWindowDimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +37,66 @@ function toGame(igdb: IGDBGameResult): Game {
   };
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#030712',
+    paddingHorizontal: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  dashboardButton: {
+    color: '#34d399',
+    fontSize: 20,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    color: '#fff',
+  },
+  searchButton: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  errorText: {
+    color: '#f87171',
+    marginBottom: 12,
+  },
+  contentContainer: {
+    gap: 12,
+  },
+  footerLoader: {
+    marginTop: 12,
+  },
+  footerSpacer: {
+    height: 32,
+  },
+});
+
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
@@ -73,27 +133,19 @@ export default function SearchScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 16, paddingHorizontal: 16 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>
+    <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+      <View style={styles.header}>
+        <Text style={styles.title}>
           Buscar Juegos
         </Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Text style={{ color: '#34d399', fontSize: 20 }}>👤</Text>
+          <Text style={styles.dashboardButton}>👤</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+      <View style={styles.searchRow}>
         <TextInput
-          style={{
-            flex: 1,
-            backgroundColor: '#111827',
-            borderWidth: 1,
-            borderColor: '#374151',
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            color: '#fff',
-          }}
+          style={styles.searchInput}
           placeholder="Buscar por nombre..."
           placeholderTextColor="#6b7280"
           value={query}
@@ -103,21 +155,16 @@ export default function SearchScreen() {
         <TouchableOpacity
           onPress={() => search(query)}
           disabled={loading}
-          style={{
-            backgroundColor: '#059669',
-            paddingHorizontal: 20,
-            borderRadius: 8,
-            justifyContent: 'center',
-          }}
+          style={styles.searchButton}
         >
-          <Text style={{ color: '#fff', fontWeight: '500' }}>
+          <Text style={styles.searchButtonText}>
             {loading ? '...' : 'Buscar'}
           </Text>
         </TouchableOpacity>
       </View>
 
       {error && (
-        <Text style={{ color: '#f87171', marginBottom: 12 }}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       )}
 
       {loading && <ActivityIndicator size="large" color="#10b981" />}
@@ -126,7 +173,7 @@ export default function SearchScreen() {
         data={results}
         numColumns={COLS}
         keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={{ gap: 12 }}
+        contentContainerStyle={styles.contentContainer}
         columnWrapperStyle={{ gap }}
         renderItem={({ item }) => (
           <GameCard
@@ -141,9 +188,9 @@ export default function SearchScreen() {
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator size="small" color="#10b981" style={{ marginTop: 12 }} />
+            <ActivityIndicator size="small" color="#10b981" style={styles.footerLoader} />
           ) : results.length > 0 ? (
-            <View style={{ height: 32 }} />
+            <View style={styles.footerSpacer} />
           ) : null
         }
       />

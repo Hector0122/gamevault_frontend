@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import type { GameStatus } from '../types';
 
 const statuses: { key: GameStatus; label: string; color: string }[] = [
@@ -15,33 +15,82 @@ type Props = {
   onCancel: () => void;
 };
 
-export default function StatusSelectorModal({ visible, onSelect, onCancel }: Props) {
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: '#00000080',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    backgroundColor: '#1f2937',
+    borderRadius: 16,
+    padding: 20,
+    width: 260,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  statusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 15,
+  },
+  cancelButton: {
+    marginTop: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: '#6b7280',
+    fontSize: 14,
+  },
+});
+
+export default function StatusSelectorModal({
+  visible,
+  onSelect,
+  onCancel,
+}: Props) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View style={{ flex: 1, backgroundColor: '#00000080', justifyContent: 'center', alignItems: 'center' }}>
-        <View style={{ backgroundColor: '#1f2937', borderRadius: 16, padding: 20, width: 260 }}>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600', textAlign: 'center', marginBottom: 16 }}>
-            Agregar como...
-          </Text>
-          {statuses.map((s) => (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Agregar como...</Text>
+          {statuses.map(s => (
             <TouchableOpacity
               key={s.key}
               onPress={() => onSelect(s.key)}
-              style={{
-                flexDirection: 'row', alignItems: 'center', gap: 10,
-                paddingVertical: 12, paddingHorizontal: 16, borderRadius: 10,
-                marginBottom: 4,
-              }}
+              style={styles.statusItem}
             >
-              <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: s.color }} />
-              <Text style={{ color: '#fff', fontSize: 15 }}>{s.label}</Text>
+              <View style={[styles.dot, { backgroundColor: s.color }]} />
+              <Text style={styles.statusText}>{s.label}</Text>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity
-            onPress={onCancel}
-            style={{ marginTop: 8, paddingVertical: 10, alignItems: 'center' }}
-          >
-            <Text style={{ color: '#6b7280', fontSize: 14 }}>Cancelar</Text>
+          <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+            <Text style={styles.cancelText}>Cancelar</Text>
           </TouchableOpacity>
         </View>
       </View>

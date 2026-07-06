@@ -1,8 +1,73 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/AuthContext';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#030712',
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#34d399',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  emailInput: {
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  passwordInput: {
+    backgroundColor: '#111827',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  registerButton: {
+    backgroundColor: '#059669',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loginLinkContainer: {
+    alignItems: 'center',
+  },
+  loginPromptText: {
+    color: '#6b7280',
+    fontSize: 14,
+  },
+  loginLinkText: {
+    color: '#34d399',
+  },
+});
 
 export default function RegisterScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -31,19 +96,16 @@ export default function RegisterScreen({ navigation }: any) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#030712', paddingTop: insets.top + 80, paddingHorizontal: 24 }}>
-      <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#34d399', textAlign: 'center', marginBottom: 8 }}>
+    <View style={[styles.container, { paddingTop: insets.top + 80 }]}>
+      <Text style={styles.title}>
         GameVault
       </Text>
-      <Text style={{ fontSize: 16, color: '#9ca3af', textAlign: 'center', marginBottom: 32 }}>
+      <Text style={styles.subtitle}>
         Crea tu cuenta
       </Text>
 
       <TextInput
-        style={{
-          backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 8,
-          paddingHorizontal: 16, paddingVertical: 12, color: '#fff', fontSize: 16, marginBottom: 12,
-        }}
+        style={styles.emailInput}
         placeholder="Email"
         placeholderTextColor="#6b7280"
         value={email}
@@ -53,10 +115,7 @@ export default function RegisterScreen({ navigation }: any) {
       />
 
       <TextInput
-        style={{
-          backgroundColor: '#111827', borderWidth: 1, borderColor: '#374151', borderRadius: 8,
-          paddingHorizontal: 16, paddingVertical: 12, color: '#fff', fontSize: 16, marginBottom: 24,
-        }}
+        style={styles.passwordInput}
         placeholder="Contraseña (mín. 6 caracteres)"
         placeholderTextColor="#6b7280"
         value={password}
@@ -67,21 +126,19 @@ export default function RegisterScreen({ navigation }: any) {
       <TouchableOpacity
         onPress={handleRegister}
         disabled={loading}
-        style={{
-          backgroundColor: '#059669', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginBottom: 16,
-        }}
+        style={styles.registerButton}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>Crear cuenta</Text>
+          <Text style={styles.buttonText}>Crear cuenta</Text>
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={{ alignItems: 'center' }}>
-        <Text style={{ color: '#6b7280', fontSize: 14 }}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.loginLinkContainer}>
+        <Text style={styles.loginPromptText}>
           ¿Ya tienes cuenta?{' '}
-          <Text style={{ color: '#34d399' }}>Inicia sesión</Text>
+          <Text style={styles.loginLinkText}>Inicia sesión</Text>
         </Text>
       </TouchableOpacity>
     </View>
