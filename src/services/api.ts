@@ -14,6 +14,11 @@ export function setToken(token: string | null) {
   authToken = token;
 }
 
+// Distingue "no hay conexión / el fetch ni llegó al servidor" de un error
+// lógico que el servidor sí respondió (400, 401, etc). Solo el primero tiene
+// sentido reintentar más tarde desde una cola de sincronización offline.
+export class NetworkError extends Error {}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -21,7 +26,16 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   if (authToken) {
     headers.Authorization = `Bearer ${authToken}`;
   }
-  const res = await fetch(`${API_BASE}${url}`, { headers, ...options });
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${url}`, { headers, ...options });
+  } catch (err) {
+    throw new NetworkError(
+      err instanceof Error ? err.message : 'Network request failed',
+    );
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error);
@@ -120,9 +134,11 @@ export function getDashboard() {
 }
 
 export function getDeals() {
-  return request<{ recommendations: DealRecommendation[]; message?: string }>(
-    '/deals',
-  );
+  return request<{
+    status?: 'pending' | 'ready' | 'error';
+    recommendations: DealRecommendation[];
+    message?: string;
+  }>('/deals');
 }
 
 export function getWishlistDeals() {

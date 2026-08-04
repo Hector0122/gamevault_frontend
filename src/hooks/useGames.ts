@@ -1,9 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { createMMKV } from 'react-native-mmkv';
 import * as api from '../services/api';
+import { NetworkError } from '../services/api';
+import {
+  enqueueMutation,
+  flushMutationQueue,
+  getPendingMutationCount,
+} from '../services/mutationQueue';
 import type {
   DashboardStats,
   DealRecommendation,
+  GameStatus,
   IGDBGameResult,
   UserGame,
   WishlistDeal,
@@ -111,6 +118,9 @@ export function useLibrary() {
   const [sortKey, setSortKey] = useState<
     'recent' | 'title' | 'hours' | 'rating'
   >('recent');
+  const [pendingMutationCount, setPendingMutationCount] = useState(() =>
+    getPendingMutationCount(),
+  );
 
   const nextPageRef = useRef(1);
   const fetchingRef = useRef(false);
@@ -138,6 +148,12 @@ export function useLibrary() {
         setLoading(true);
         setGames([]);
         nextPageRef.current = 1;
+        // Si recuperamos señal, manda primero los cambios pendientes para
+        // que la biblioteca que se recarga ya los refleje.
+        const { remaining } = await flushMutationQueue().catch(() => ({
+          remaining: getPendingMutationCount(),
+        }));
+        setPendingMutationCount(remaining);
       } else {
         setLoadingMore(true);
       }
@@ -182,22 +198,68 @@ export function useLibrary() {
   }, [loadingMore, loading, games.length, total, fetchLibrary]);
 
   async function addToCollection(externalId: number, status = 'OWNED') {
+    // Requiere haber buscado el juego en IGDB primero, lo que ya requiere
+    // conexión — no tiene sentido encolar esto para offline.
     const game = await api.addGame(externalId);
     await api.updateStatus(game.id, status);
   }
 
+  function markPendingSync() {
+    setPendingMutationCount(getPendingMutationCount());
+  }
+
   async function changeStatus(gameId: string, status: string) {
-    await api.updateStatus(gameId, status);
-    await fetchLibrary(true);
+    try {
+      await api.updateStatus(gameId, status);
+      await fetchLibrary(true);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        enqueueMutation({ type: 'status', gameId, status });
+        setGames(prev =>
+          prev.map(g =>
+            g.gameId === gameId ? { ...g, status: status as GameStatus } : g,
+          ),
+        );
+        markPendingSync();
+        return;
+      }
+      throw err;
+    }
   }
 
   async function updateStatus(gameId: string, status: string) {
-    await api.updateStatus(gameId, status);
+    try {
+      await api.updateStatus(gameId, status);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        enqueueMutation({ type: 'status', gameId, status });
+        setGames(prev =>
+          prev.map(g =>
+            g.gameId === gameId ? { ...g, status: status as GameStatus } : g,
+          ),
+        );
+        markPendingSync();
+        return;
+      }
+      throw err;
+    }
   }
 
   async function updateHours(gameId: string, hoursPlayed: number) {
-    await api.updateHours(gameId, hoursPlayed);
-    await fetchLibrary(true);
+    try {
+      await api.updateHours(gameId, hoursPlayed);
+      await fetchLibrary(true);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        enqueueMutation({ type: 'hours', gameId, hoursPlayed });
+        setGames(prev =>
+          prev.map(g => (g.gameId === gameId ? { ...g, hoursPlayed } : g)),
+        );
+        markPendingSync();
+        return;
+      }
+      throw err;
+    }
   }
 
   async function updateNotes(
@@ -205,28 +267,57 @@ export function useLibrary() {
     data: { rating?: number | null; notes?: string | null },
     silent = false,
   ) {
-    await api.updateNotes(gameId, data);
-    if (silent) {
-      setGames(prev =>
-        prev.map(g => (g.gameId === gameId ? { ...g, ...data } : g)),
-      );
-    } else {
-      await fetchLibrary(true);
+    try {
+      await api.updateNotes(gameId, data);
+      if (silent) {
+        setGames(prev =>
+          prev.map(g => (g.gameId === gameId ? { ...g, ...data } : g)),
+        );
+      } else {
+        await fetchLibrary(true);
+      }
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        enqueueMutation({ type: 'notes', gameId, data });
+        setGames(prev =>
+          prev.map(g => (g.gameId === gameId ? { ...g, ...data } : g)),
+        );
+        markPendingSync();
+        return;
+      }
+      throw err;
     }
   }
 
   async function removeGame(gameId: string) {
+    // Borrar es destructivo: si lo encoláramos y lo quitáramos de la lista
+    // localmente, el usuario podría creer que ya se borró y olvidarse de que
+    // nunca se sincronizó. Mejor fallar de forma visible aquí.
     await api.removeGame(gameId);
     await fetchLibrary(true);
   }
 
   async function updatePriority(gameId: string, priority: string | null) {
-    await api.updatePriority(gameId, priority);
-    setGames(prev =>
-      prev.map(g =>
-        g.gameId === gameId ? { ...g, priority: priority as any } : g,
-      ),
-    );
+    try {
+      await api.updatePriority(gameId, priority);
+      setGames(prev =>
+        prev.map(g =>
+          g.gameId === gameId ? { ...g, priority: priority as any } : g,
+        ),
+      );
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        enqueueMutation({ type: 'priority', gameId, priority });
+        setGames(prev =>
+          prev.map(g =>
+            g.gameId === gameId ? { ...g, priority: priority as any } : g,
+          ),
+        );
+        markPendingSync();
+        return;
+      }
+      throw err;
+    }
   }
 
   return {
@@ -256,8 +347,12 @@ export function useLibrary() {
     setSortKey,
     libraryTotalCount,
     libraryTotalCountInitialized,
+    pendingMutationCount,
   };
 }
+
+const DEALS_POLL_INTERVAL_MS = 3000;
+const DEALS_POLL_MAX_ATTEMPTS = 20; // ~1 minuto
 
 export function useDeals() {
   const [recommendations, setRecommendations] = useState<DealRecommendation[]>(
@@ -265,60 +360,89 @@ export function useDeals() {
   );
   const [wishlistDeals, setWishlistDeals] = useState<WishlistDeal[]>([]);
   const [loading, setLoading] = useState(false);
+  // El servidor genera las recomendaciones en segundo plano (llama a la IA,
+  // busca portadas y precios); mientras tanto responde "pending" y hay que
+  // seguir preguntando. `generating` distingue esa espera de la carga
+  // inicial normal.
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const mountedRef = useRef(true);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollTokenRef = useRef(0);
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
   }, []);
+
+  const pollRecommendations = useCallback(
+    (token: number, attempt = 0) => {
+      api
+        .getDeals()
+        .then(data => {
+          if (!mountedRef.current || token !== pollTokenRef.current) return;
+
+          if (data.status === 'pending') {
+            setGenerating(true);
+            if (attempt < DEALS_POLL_MAX_ATTEMPTS) {
+              pollTimeoutRef.current = setTimeout(
+                () => pollRecommendations(token, attempt + 1),
+                DEALS_POLL_INTERVAL_MS,
+              );
+            } else {
+              setGenerating(false);
+              setError(
+                'Generar recomendaciones está tardando más de lo normal. Vuelve a intentarlo en un momento.',
+              );
+            }
+            return;
+          }
+
+          setGenerating(false);
+          setRecommendations(data.recommendations ?? []);
+          setMessage(data.message ?? null);
+          if (data.status === 'error') {
+            setError(data.message ?? 'No se pudieron generar recomendaciones');
+          }
+        })
+        .catch(err => {
+          if (!mountedRef.current || token !== pollTokenRef.current) return;
+          setGenerating(false);
+          setError(
+            err instanceof Error ? err.message : 'Error al obtener ofertas',
+          );
+        });
+    },
+    [],
+  );
 
   const fetchDeals = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    const safe = <T>(fn: () => T) => {
-      if (mountedRef.current) return fn();
-    };
-    const setRecs = (v: DealRecommendation[]) =>
-      safe(() => setRecommendations(v));
-    const setMsg = (v: string | null) => safe(() => setMessage(v));
-    const setErr = (v: string | null) => safe(() => setError(v));
-    const setWL = (v: WishlistDeal[]) => safe(() => setWishlistDeals(v));
-    const setLoad = (v: boolean) => safe(() => setLoading(v));
+    const token = ++pollTokenRef.current;
+    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 
-    setLoad(true);
-    setErr(null);
+    await api
+      .getWishlistDeals()
+      .then(data => {
+        if (mountedRef.current) setWishlistDeals(data.deals);
+      })
+      .catch(() => {});
 
-    await Promise.allSettled([
-      api
-        .getDeals()
-        .then(data => {
-          setRecs(data.recommendations);
-          setMsg(data.message ?? null);
-        })
-        .catch(err => {
-          setErr(
-            err instanceof Error ? err.message : 'Error al obtener ofertas',
-          );
-        }),
-      api
-        .getWishlistDeals()
-        .then(data => {
-          setWL(data.deals);
-        })
-        .catch(() => {}),
-    ]);
+    pollRecommendations(token);
 
-    setLoad(false);
-  }, []);
+    if (mountedRef.current) setLoading(false);
+  }, [pollRecommendations]);
 
   return {
     recommendations,
     wishlistDeals,
     loading,
+    generating,
     error,
     message,
     fetchDeals,

@@ -91,6 +91,7 @@ export default function LibraryScreen() {
     loading,
     loadingMore,
     isOffline,
+    pendingMutationCount,
     fetchLibrary,
     loadMore,
     changeStatus,
@@ -498,6 +499,16 @@ export default function LibraryScreen() {
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
             Sin conexión — mostrando datos guardados
+          </Text>
+        </View>
+      )}
+
+      {!isOffline && pendingMutationCount > 0 && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>
+            {pendingMutationCount === 1
+              ? '1 cambio pendiente de sincronizar'
+              : `${pendingMutationCount} cambios pendientes de sincronizar`}
           </Text>
         </View>
       )}

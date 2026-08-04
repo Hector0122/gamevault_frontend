@@ -24,6 +24,7 @@ export default function DealsScreen() {
     recommendations,
     wishlistDeals,
     loading,
+    generating,
     error,
     message,
     fetchDeals,
@@ -195,18 +196,22 @@ export default function DealsScreen() {
 
       {tab === 'recommendations' && (
         <>
-          {message && !loading && (
+          {message && !loading && !generating && (
             <View style={styles.messageContainer}>
               <Text style={styles.messageText}>{message}</Text>
             </View>
           )}
 
-          {loading && recommendations.length === 0 ? (
-            <ActivityIndicator
-              size="large"
-              color="#10b981"
-              style={styles.loadingContainer}
-            />
+          {(loading || generating) && recommendations.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#10b981" />
+              {generating && (
+                <Text style={styles.generatingText}>
+                  Generando recomendaciones personalizadas… esto puede tardar
+                  unos segundos.
+                </Text>
+              )}
+            </View>
           ) : recommendations.length === 0 && !message ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
@@ -227,7 +232,7 @@ export default function DealsScreen() {
               renderItem={renderRecommendation}
               refreshControl={
                 <RefreshControl
-                  refreshing={loading}
+                  refreshing={loading || generating}
                   onRefresh={fetchDeals}
                   tintColor="#10b981"
                 />
@@ -429,6 +434,15 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  generatingText: {
+    color: '#9ca3af',
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 32,
   },
   emptyContainer: {
     flex: 1,
