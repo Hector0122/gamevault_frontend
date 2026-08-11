@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList, useWindowDimensions, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +8,8 @@ import Toast from 'react-native-toast-message';
 import { useSearch, useLibrary } from '../hooks/useGames';
 import GameCard from '../components/GameCard';
 import StatusSelectorModal from '../components/StatusSelectorModal';
+import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 import type { SearchStackParamList } from '../navigation/AppNavigator';
 import type { Game, GameStatus, IGDBGameResult } from '../types';
 
@@ -40,7 +43,7 @@ function toGame(igdb: IGDBGameResult): Game {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
   },
   header: {
@@ -52,11 +55,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
-  },
-  dashboardButton: {
-    color: '#34d399',
-    fontSize: 20,
+    color: colors.text,
   },
   searchRow: {
     flexDirection: 'row',
@@ -65,17 +64,17 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 16,
-    color: '#fff',
+    color: colors.text,
   },
   searchButton: {
-    backgroundColor: '#059669',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: radius.xs,
     justifyContent: 'center',
   },
   searchButtonText: {
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   errorText: {
-    color: '#f87171',
+    color: colors.danger,
     marginBottom: 12,
   },
   contentContainer: {
@@ -139,7 +138,7 @@ export default function SearchScreen() {
           Buscar Juegos
         </Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Text style={styles.dashboardButton}>👤</Text>
+          <Icon name="account-circle-outline" size={22} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -147,7 +146,7 @@ export default function SearchScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar por nombre..."
-          placeholderTextColor="#6b7280"
+          placeholderTextColor={colors.textTertiary}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={() => search(query)}
@@ -167,7 +166,7 @@ export default function SearchScreen() {
         <Text style={styles.errorText}>{error}</Text>
       )}
 
-      {loading && <ActivityIndicator size="large" color="#10b981" />}
+      {loading && <ActivityIndicator size="large" color={colors.primary} />}
 
       <FlatList
         data={results}
@@ -188,7 +187,7 @@ export default function SearchScreen() {
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator size="small" color="#10b981" style={styles.footerLoader} />
+            <ActivityIndicator size="small" color={colors.primary} style={styles.footerLoader} />
           ) : results.length > 0 ? (
             <View style={styles.footerSpacer} />
           ) : null

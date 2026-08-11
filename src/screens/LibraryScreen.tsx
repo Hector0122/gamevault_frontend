@@ -16,22 +16,29 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useLibrary } from '../hooks/useGames';
 import type { GameStatus, Priority, UserGame } from '../types';
 import { imageProxyUrl, exportUrl } from '../services/api';
 import type { LibraryStackParamList } from '../navigation/AppNavigator';
+import { colors, statusDotColors } from '../theme/colors';
+import { hues, radius } from '../theme/tokens';
 
 type LibraryNav = NativeStackNavigationProp<
   LibraryStackParamList,
   'LibraryList'
 >;
 
+// Mismo mapeo que StatusBadge/StatusSelectorModal — antes esta pantalla traía
+// su PROPIA tercera copia del color por estado (coincidía con el selector,
+// pero era una tercera fuente de verdad suelta). Ahora las tres leen de
+// `statusDotColors` en theme/colors.ts.
 const statuses: { key: GameStatus; label: string; color: string }[] = [
-  { key: 'WISHLIST', label: 'Deseado', color: '#f59e0b' },
-  { key: 'OWNED', label: 'Comprado', color: '#3b82f6' },
-  { key: 'PLAYING', label: 'Jugando', color: '#10b981' },
-  { key: 'COMPLETED', label: 'Completado', color: '#8b5cf6' },
-  { key: 'DROPPED', label: 'Abandonado', color: '#ef4444' },
+  { key: 'WISHLIST', label: 'Deseado', color: statusDotColors.WISHLIST },
+  { key: 'OWNED', label: 'Comprado', color: statusDotColors.OWNED },
+  { key: 'PLAYING', label: 'Jugando', color: statusDotColors.PLAYING },
+  { key: 'COMPLETED', label: 'Completado', color: statusDotColors.COMPLETED },
+  { key: 'DROPPED', label: 'Abandonado', color: statusDotColors.DROPPED },
 ];
 
 type SortKey = 'title' | 'recent' | 'hours' | 'rating';
@@ -46,9 +53,9 @@ const sortOptions: { key: SortKey; label: string }[] = [
 const priorityCycle: (Priority | null)[] = [null, 'HIGH', 'MEDIUM', 'LOW'];
 
 const priorityConfig: Record<string, { label: string; color: string }> = {
-  HIGH: { label: '!!', color: '#ef4444' },
-  MEDIUM: { label: '!', color: '#f59e0b' },
-  LOW: { label: '↓', color: '#6b7280' },
+  HIGH: { label: '!!', color: colors.danger },
+  MEDIUM: { label: '!', color: colors.accent },
+  LOW: { label: '↓', color: colors.textTertiary },
 };
 
 function Stars({
@@ -238,7 +245,7 @@ export default function LibraryScreen() {
     return (
       <ActivityIndicator
         size="large"
-        color="#10b981"
+        color={colors.primary}
         style={styles.loadingIndicator}
       />
     );
@@ -306,7 +313,7 @@ export default function LibraryScreen() {
                 }
                 style={styles.deleteButton}
               >
-                <Text style={styles.deleteIcon}>✕</Text>
+                <Icon name="delete-outline" size={16} color={colors.danger} />
               </TouchableOpacity>
             </View>
 
@@ -333,7 +340,7 @@ export default function LibraryScreen() {
                 <TextInput
                   style={styles.inlineInput}
                   placeholder="Horas"
-                  placeholderTextColor="#6b7280"
+                  placeholderTextColor={colors.textTertiary}
                   keyboardType="numeric"
                   value={hoursInput}
                   onChangeText={setHoursInput}
@@ -417,7 +424,7 @@ export default function LibraryScreen() {
               <TextInput
                 style={styles.inlineInput}
                 placeholder="Notas..."
-                placeholderTextColor="#6b7280"
+                placeholderTextColor={colors.textTertiary}
                 value={notesInput}
                 onChangeText={setNotesInput}
               />
@@ -465,12 +472,12 @@ export default function LibraryScreen() {
               Linking.openURL(url);
             }}
           >
-            <Text style={styles.headerIcon18}>📥</Text>
+            <Icon name="file-export-outline" size={18} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => (navigation as any).navigate('Dashboard')}
           >
-            <Text style={styles.headerIcon20}>👤</Text>
+            <Icon name="account-circle-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -479,7 +486,7 @@ export default function LibraryScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar en biblioteca..."
-          placeholderTextColor="#6b7280"
+          placeholderTextColor={colors.textTertiary}
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSubmitEditing={() => fetchLibrary(true)}
@@ -589,14 +596,14 @@ export default function LibraryScreen() {
                 type: 'platform' as const,
                 key: p,
                 label: p,
-                color: '#3b82f6',
+                color: hues.azure,
                 active: platformFilter === p,
               })),
               ...genres.map(g => ({
                 type: 'genre' as const,
                 key: g,
                 label: g,
-                color: '#8b5cf6',
+                color: hues.purple,
                 active: genreFilter === g,
               })),
             ]}
@@ -651,7 +658,7 @@ export default function LibraryScreen() {
           <RefreshControl
             refreshing={loading}
             onRefresh={() => fetchLibrary(true)}
-            tintColor="#10b981"
+            tintColor={colors.primary}
           />
         }
         onEndReached={loadMore}
@@ -660,7 +667,7 @@ export default function LibraryScreen() {
           loadingMore ? (
             <ActivityIndicator
               size="small"
-              color="#10b981"
+              color={colors.primary}
               style={styles.footerLoader}
             />
           ) : games.length > 0 && games.length >= total ? (
@@ -692,32 +699,32 @@ const styles = StyleSheet.create({
     fontSize: 22,
   },
   starActive: {
-    color: '#f59e0b',
+    color: colors.accent,
   },
   starInactive: {
-    color: '#374151',
+    color: colors.textMuted,
   },
   loadingIndicator: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
   },
   emptyContainer: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 32,
   },
   gameCard: {
-    backgroundColor: '#111827',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    borderRadius: 8,
+    borderColor: colors.borderLight,
+    borderRadius: radius.xs,
     padding: 10,
     marginBottom: 10,
   },
@@ -728,13 +735,13 @@ const styles = StyleSheet.create({
   coverImage: {
     width: 50,
     height: 68,
-    borderRadius: 4,
+    borderRadius: radius.xs,
   },
   coverPlaceholder: {
     width: 50,
     height: 68,
-    backgroundColor: '#374151',
-    borderRadius: 4,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.xs,
   },
   gameInfo: {
     flex: 1,
@@ -747,15 +754,11 @@ const styles = StyleSheet.create({
   gameTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.text,
     flex: 1,
   },
   deleteButton: {
     paddingLeft: 6,
-  },
-  deleteIcon: {
-    color: '#ef4444',
-    fontSize: 14,
   },
   platformsRow: {
     flexDirection: 'row',
@@ -764,17 +767,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   platformBadge: {
-    backgroundColor: '#374151',
+    backgroundColor: colors.surfaceAlt,
     paddingHorizontal: 5,
     paddingVertical: 1,
-    borderRadius: 4,
+    borderRadius: radius.xs,
   },
   platformText: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 9,
   },
   morePlatformsText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 9,
     alignSelf: 'center',
   },
@@ -785,19 +788,19 @@ const styles = StyleSheet.create({
   },
   inlineInput: {
     flex: 1,
-    backgroundColor: '#1f2937',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 4,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    color: '#fff',
+    color: colors.text,
     fontSize: 11,
   },
   inlineOkButton: {
-    backgroundColor: '#059669',
+    backgroundColor: colors.primary,
     paddingHorizontal: 8,
-    borderRadius: 4,
+    borderRadius: radius.xs,
     justifyContent: 'center',
   },
   inlineOkText: {
@@ -805,7 +808,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   hoursText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 11,
     marginTop: 2,
   },
@@ -821,7 +824,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: radius.sm,
     borderWidth: 1,
   },
   statusLabelBase: {
@@ -834,7 +837,7 @@ const styles = StyleSheet.create({
   priorityBadgeBase: {
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   priorityLabelBase: {
@@ -844,12 +847,12 @@ const styles = StyleSheet.create({
   priorityButton: {
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: radius.xs,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: colors.border,
   },
   priorityButtonText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 9,
   },
   notesEditRow: {
@@ -861,12 +864,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notesText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 11,
   },
   container: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
   },
   header: {
@@ -878,19 +881,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 8,
-  },
-  headerIcon18: {
-    color: '#34d399',
-    fontSize: 18,
-  },
-  headerIcon20: {
-    color: '#34d399',
-    fontSize: 20,
+    alignItems: 'center',
   },
   searchRow: {
     flexDirection: 'row',
@@ -899,19 +895,19 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
   },
   searchButton: {
-    backgroundColor: '#059669',
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: radius.xs,
     justifyContent: 'center',
   },
   searchButtonText: {
@@ -920,15 +916,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   offlineBanner: {
-    backgroundColor: '#f59e0b20',
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: '#f59e0b',
-    borderRadius: 8,
+    borderColor: colors.accent,
+    borderRadius: radius.xs,
     padding: 8,
     marginBottom: 12,
   },
   offlineText: {
-    color: '#f59e0b',
+    color: colors.accent,
     fontSize: 12,
     textAlign: 'center',
   },
@@ -944,41 +940,41 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 14,
+    borderRadius: radius.md,
     borderWidth: 1,
   },
   filterChipActive: {
-    borderColor: '#34d399',
-    backgroundColor: '#065f46',
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
   },
   filterChipInactive: {
-    borderColor: '#374151',
+    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
   filterChipTextBase: {
     fontSize: 12,
   },
   filterChipTextActive: {
-    color: '#fff',
+    color: colors.text,
   },
   filterChipTextInactive: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
   },
   filterBadge: {
-    backgroundColor: '#34d399',
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radius.xs,
     width: 16,
     height: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   filterBadgeText: {
-    color: '#000',
+    color: '#fff',
     fontSize: 10,
     fontWeight: '700',
   },
   filterArrow: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 10,
   },
   spacer: {
@@ -987,25 +983,25 @@ const styles = StyleSheet.create({
   sortChipBase: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: radius.sm,
     borderWidth: 1,
   },
   sortChipActive: {
-    borderColor: '#34d399',
-    backgroundColor: '#065f46',
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
   },
   sortChipInactive: {
-    borderColor: '#374151',
+    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
   sortChipTextBase: {
     fontSize: 11,
   },
   sortChipTextActive: {
-    color: '#fff',
+    color: colors.text,
   },
   sortChipTextInactive: {
-    color: '#6b7280',
+    color: colors.textTertiary,
   },
   filterListContainer: {
     marginBottom: 12,
@@ -1013,15 +1009,15 @@ const styles = StyleSheet.create({
   filterItemChipBase: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: radius.sm,
     marginRight: 4,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
   filterItemTextBase: {
     fontSize: 11,
-    color: '#6b7280',
+    color: colors.textTertiary,
   },
   footerLoader: {
     marginVertical: 16,
@@ -1030,7 +1026,7 @@ const styles = StyleSheet.create({
     height: 32,
   },
   emptyListText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     textAlign: 'center',
     marginTop: 20,
   },

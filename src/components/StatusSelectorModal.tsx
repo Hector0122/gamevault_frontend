@@ -1,12 +1,14 @@
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { colors, statusDotColors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 import type { GameStatus } from '../types';
 
-const statuses: { key: GameStatus; label: string; color: string }[] = [
-  { key: 'WISHLIST', label: 'Deseado', color: '#f59e0b' },
-  { key: 'OWNED', label: 'Comprado', color: '#3b82f6' },
-  { key: 'PLAYING', label: 'Jugando', color: '#10b981' },
-  { key: 'COMPLETED', label: 'Completado', color: '#8b5cf6' },
-  { key: 'DROPPED', label: 'Abandonado', color: '#ef4444' },
+const statuses: { key: GameStatus; label: string }[] = [
+  { key: 'WISHLIST', label: 'Deseado' },
+  { key: 'OWNED', label: 'Comprado' },
+  { key: 'PLAYING', label: 'Jugando' },
+  { key: 'COMPLETED', label: 'Completado' },
+  { key: 'DROPPED', label: 'Abandonado' },
 ];
 
 type Props = {
@@ -18,18 +20,18 @@ type Props = {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#00000080',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
-    backgroundColor: '#1f2937',
-    borderRadius: 16,
+    backgroundColor: colors.cardBg,
+    borderRadius: radius.md,
     padding: 20,
     width: 260,
   },
   title: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
@@ -41,7 +43,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     marginBottom: 4,
   },
   dot: {
@@ -50,7 +52,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   statusText: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 15,
   },
   cancelButton: {
@@ -59,7 +61,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 14,
   },
 });
@@ -85,7 +87,7 @@ export default function StatusSelectorModal({
               onPress={() => onSelect(s.key)}
               style={styles.statusItem}
             >
-              <View style={[styles.dot, { backgroundColor: s.color }]} />
+              <View style={[styles.dot, { backgroundColor: statusDotColors[s.key] }]} />
               <Text style={styles.statusText}>{s.label}</Text>
             </TouchableOpacity>
           ))}

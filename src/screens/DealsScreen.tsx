@@ -10,10 +10,14 @@ import {
   Linking,
   StyleSheet,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDeals } from '../hooks/useGames';
 import { imageProxyUrl } from '../services/api';
+import { colors } from '../theme/colors';
+import { hexToRgba, radius } from '../theme/tokens';
+import Button from '../components/Button';
 import type { DealRecommendation, WishlistDeal } from '../types';
 
 type Tab = 'recommendations' | 'wishlist';
@@ -73,8 +77,9 @@ export default function DealsScreen() {
             {item.deal ? (
               <View style={styles.dealBadge}>
                 <View style={styles.dealRow}>
+                  <Icon name="fire" size={13} color={colors.accent} />
                   <Text style={styles.discountText}>
-                    🔥 {item.deal.discount}% OFF
+                    {item.deal.discount}% OFF
                   </Text>
                   <Text style={styles.originalPrice}>
                     ${item.deal.regularPrice.toFixed(2)}
@@ -121,8 +126,9 @@ export default function DealsScreen() {
             {item.currentPrice != null && item.regularPrice != null && (
               <View style={styles.dealBadge}>
                 <View style={styles.dealRow}>
+                  <Icon name="fire" size={13} color={colors.accent} />
                   <Text style={styles.discountText}>
-                    🔥 {item.discount}% OFF
+                    {item.discount}% OFF
                   </Text>
                   <Text style={styles.originalPrice}>
                     ${item.regularPrice.toFixed(2)}
@@ -204,7 +210,7 @@ export default function DealsScreen() {
 
           {(loading || generating) && recommendations.length === 0 ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#10b981" />
+              <ActivityIndicator size="large" color={colors.primary} />
               {generating && (
                 <Text style={styles.generatingText}>
                   Generando recomendaciones personalizadas… esto puede tardar
@@ -218,12 +224,9 @@ export default function DealsScreen() {
                 Completa juegos en tu biblioteca para recibir recomendaciones
                 personalizadas.
               </Text>
-              <TouchableOpacity
-                onPress={fetchDeals}
-                style={styles.updateButton}
-              >
-                <Text style={styles.updateButtonText}>Actualizar</Text>
-              </TouchableOpacity>
+              <View style={styles.updateButton}>
+                <Button title="Actualizar" onPress={fetchDeals} />
+              </View>
             </View>
           ) : (
             <FlatList
@@ -234,7 +237,7 @@ export default function DealsScreen() {
                 <RefreshControl
                   refreshing={loading || generating}
                   onRefresh={fetchDeals}
-                  tintColor="#10b981"
+                  tintColor={colors.primary}
                 />
               }
               ListFooterComponent={<View style={styles.footer} />}
@@ -248,7 +251,7 @@ export default function DealsScreen() {
           {loading && wishlistDeals.length === 0 ? (
             <ActivityIndicator
               size="large"
-              color="#10b981"
+              color={colors.primary}
               style={styles.loadingContainer}
             />
           ) : wishlistDeals.length === 0 ? (
@@ -268,7 +271,7 @@ export default function DealsScreen() {
                 <RefreshControl
                   refreshing={loading}
                   onRefresh={fetchDeals}
-                  tintColor="#10b981"
+                  tintColor={colors.primary}
                 />
               }
               ListFooterComponent={<View style={styles.footer} />}
@@ -283,13 +286,13 @@ export default function DealsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
     marginBottom: 16,
   },
   tabRow: {
@@ -300,31 +303,31 @@ const styles = StyleSheet.create({
   tabButton: {
     flex: 1,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: radius.xs,
     alignItems: 'center',
     borderWidth: 1,
   },
   tabButtonActive: {
-    backgroundColor: '#065f46',
-    borderColor: '#059669',
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
   },
   tabButtonInactive: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
   },
   tabTextActive: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
   },
   tabTextInactive: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '600',
   },
   badge: {
-    backgroundColor: '#f59e0b',
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.xs,
     width: 16,
     height: 16,
     justifyContent: 'center',
@@ -339,10 +342,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   card: {
-    backgroundColor: '#111827',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    borderRadius: 8,
+    borderColor: colors.borderLight,
+    borderRadius: radius.xs,
     padding: 12,
     marginBottom: 10,
   },
@@ -353,13 +356,13 @@ const styles = StyleSheet.create({
   coverImage: {
     width: 50,
     height: 68,
-    borderRadius: 4,
+    borderRadius: radius.xs,
   },
   coverPlaceholder: {
     width: 50,
     height: 68,
-    backgroundColor: '#374151',
-    borderRadius: 4,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.xs,
   },
   cardContent: {
     flex: 1,
@@ -367,19 +370,19 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.text,
     flex: 1,
   },
   genreText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 11,
     marginTop: 2,
   },
   dealBadge: {
-    backgroundColor: '#f59e0b20',
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: '#f59e0b40',
-    borderRadius: 6,
+    borderColor: colors.accent,
+    borderRadius: radius.xs,
     padding: 8,
     marginTop: 6,
   },
@@ -389,47 +392,47 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   discountText: {
-    color: '#f59e0b',
+    color: colors.accent,
     fontSize: 12,
     fontWeight: '600',
   },
   originalPrice: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 11,
     textDecorationLine: 'line-through',
   },
   currentPrice: {
-    color: '#34d399',
+    color: colors.success,
     fontSize: 13,
     fontWeight: '700',
   },
   storeText: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 10,
     marginTop: 2,
   },
   errorContainer: {
-    backgroundColor: '#ef444420',
+    backgroundColor: hexToRgba(colors.danger, 0.15),
     borderWidth: 1,
-    borderColor: '#ef4444',
-    borderRadius: 8,
+    borderColor: colors.danger,
+    borderRadius: radius.xs,
     padding: 12,
     marginBottom: 12,
   },
   errorText: {
-    color: '#ef4444',
+    color: colors.danger,
     fontSize: 13,
   },
   messageContainer: {
-    backgroundColor: '#3b82f620',
+    backgroundColor: hexToRgba(colors.info, 0.15),
     borderWidth: 1,
-    borderColor: '#3b82f6',
-    borderRadius: 8,
+    borderColor: colors.info,
+    borderRadius: radius.xs,
     padding: 12,
     marginBottom: 12,
   },
   messageText: {
-    color: '#3b82f6',
+    color: colors.info,
     fontSize: 13,
   },
   loadingContainer: {
@@ -439,7 +442,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   generatingText: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 13,
     textAlign: 'center',
     paddingHorizontal: 32,
@@ -450,20 +453,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 14,
     textAlign: 'center',
   },
   updateButton: {
-    backgroundColor: '#059669',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
     marginTop: 16,
-  },
-  updateButtonText: {
-    color: '#fff',
-    fontWeight: '500',
+    alignSelf: 'center',
   },
   footer: {
     height: 32,

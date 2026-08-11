@@ -6,6 +6,9 @@ import { useLibrary } from '../hooks/useGames';
 import type { GameStatus } from '../types';
 import type { SearchStackParamList, LibraryStackParamList } from '../navigation/AppNavigator';
 import { imageProxyUrl } from '../services/api';
+import { colors } from '../theme/colors';
+import { neutrals, radius } from '../theme/tokens';
+import Button from '../components/Button';
 
 const statuses: { key: GameStatus; label: string }[] = [
   { key: 'WISHLIST', label: 'Deseado' },
@@ -159,7 +162,7 @@ export default function GameDetailScreen() {
             <TextInput
               style={styles.input}
               placeholder="0"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={colors.textTertiary}
               keyboardType="numeric"
               value={hoursInput}
               onChangeText={setHoursInput}
@@ -169,7 +172,7 @@ export default function GameDetailScreen() {
             <TextInput
               style={styles.inputMultiline}
               placeholder="Notas personales..."
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={colors.textTertiary}
               value={notesInput}
               onChangeText={setNotesInput}
               multiline
@@ -209,15 +212,11 @@ export default function GameDetailScreen() {
           })}
         </View>
 
-        <TouchableOpacity
+        <Button
+          title={userGame ? 'Guardar cambios' : 'Agregar a colección'}
           onPress={handleAdd}
-          disabled={saving}
-          style={[styles.saveButtonBase, saving ? styles.saveButtonDisabled : styles.saveButtonActive]}
-        >
-          <Text style={styles.saveButtonText}>
-            {saving ? 'Guardando...' : userGame ? 'Guardar cambios' : 'Agregar a colección'}
-          </Text>
-        </TouchableOpacity>
+          loading={saving}
+        />
       </View>
     </ScrollView>
   );
@@ -226,19 +225,19 @@ export default function GameDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
   },
   coverImage: {
     height: 300,
   },
   coverPlaceholder: {
     height: 300,
-    backgroundColor: '#374151',
+    backgroundColor: colors.surfaceAlt,
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
   },
   content: {
     padding: 16,
@@ -252,14 +251,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
     flex: 1,
   },
   ownedBadge: {
-    backgroundColor: '#10b981',
+    backgroundColor: colors.success,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: radius.sm,
   },
   ownedBadgeText: {
     color: '#fff',
@@ -267,7 +266,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   releaseYear: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -278,35 +277,35 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   genrePill: {
-    backgroundColor: '#374151',
+    backgroundColor: colors.surfaceAlt,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: radius.sm,
   },
   genreText: {
-    color: '#d1d5db',
+    color: neutrals[300],
     fontSize: 12,
   },
   section: {
     marginBottom: 16,
   },
   sectionLabel: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 6,
   },
   sectionText: {
-    color: '#d1d5db',
+    color: neutrals[300],
     fontSize: 14,
   },
   descriptionText: {
-    color: '#d1d5db',
+    color: neutrals[300],
     fontSize: 14,
     lineHeight: 20,
   },
   durationText: {
-    color: '#d1d5db',
+    color: neutrals[300],
     fontSize: 13,
   },
   ratingContainer: {
@@ -316,42 +315,42 @@ const styles = StyleSheet.create({
   },
   starFilled: {
     fontSize: 20,
-    color: '#f59e0b',
+    color: colors.accent,
   },
   starEmpty: {
     fontSize: 20,
-    color: '#374151',
+    color: colors.textMuted,
   },
   input: {
-    backgroundColor: '#1f2937',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
     marginBottom: 16,
   },
   inputMultiline: {
-    backgroundColor: '#1f2937',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
     marginBottom: 16,
     minHeight: 60,
   },
   datesText: {
-    color: '#d1d5db',
+    color: neutrals[300],
     fontSize: 13,
     marginBottom: 16,
   },
   statusLabel: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
@@ -365,39 +364,23 @@ const styles = StyleSheet.create({
   statusButtonBase: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: radius.lg,
     borderWidth: 1,
   },
   statusButtonActive: {
-    borderColor: '#059669',
-    backgroundColor: '#065f46',
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
   },
   statusButtonInactive: {
-    borderColor: '#374151',
+    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
   statusTextActive: {
-    color: '#fff',
+    color: colors.text,
     fontWeight: '600',
   },
   statusTextInactive: {
-    color: '#9ca3af',
+    color: colors.textSecondary,
     fontWeight: '400',
-  },
-  saveButtonBase: {
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  saveButtonActive: {
-    backgroundColor: '#059669',
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#374151',
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

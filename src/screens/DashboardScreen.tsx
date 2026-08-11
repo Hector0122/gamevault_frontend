@@ -5,11 +5,13 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import { useDashboard } from '../hooks/useGames';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme/colors';
+import { semantic, radius } from '../theme/tokens';
+import Button from '../components/Button';
 
 const cards = [
   { key: 'total', label: 'Total' },
@@ -30,7 +32,7 @@ export default function DashboardScreen() {
 
   if (loading && !stats) {
     return (
-      <ActivityIndicator size="large" color="#10b981" style={styles.loading} />
+      <ActivityIndicator size="large" color={colors.primary} style={styles.loading} />
     );
   }
 
@@ -41,7 +43,7 @@ export default function DashboardScreen() {
         <RefreshControl
           refreshing={loading}
           onRefresh={fetchStats}
-          tintColor="#10b981"
+          tintColor={colors.primary}
         />
       }
     >
@@ -80,9 +82,9 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
-      </TouchableOpacity>
+      <View style={styles.logoutButton}>
+        <Button title="Cerrar sesión" onPress={logout} variant="danger" />
+      </View>
     </ScrollView>
   );
 }
@@ -93,26 +95,26 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
     paddingTop: 16,
     paddingHorizontal: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
     marginBottom: 16,
   },
   offlineBanner: {
-    backgroundColor: '#f59e0b20',
+    backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: '#f59e0b',
-    borderRadius: 8,
+    borderColor: colors.accent,
+    borderRadius: radius.xs,
     padding: 8,
     marginBottom: 12,
   },
   offlineText: {
-    color: '#f59e0b',
+    color: colors.accent,
     fontSize: 12,
     textAlign: 'center',
   },
@@ -123,28 +125,28 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '47%',
-    backgroundColor: '#111827',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    borderRadius: 8,
+    borderColor: colors.borderLight,
+    borderRadius: radius.xs,
     padding: 16,
     alignItems: 'center',
   },
   statNumber: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#34d399',
+    color: colors.primary,
   },
   statLabel: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   backlogCard: {
-    backgroundColor: '#111827',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: '#f59e0b',
-    borderRadius: 8,
+    borderColor: colors.accent,
+    borderRadius: radius.xs,
     padding: 16,
     marginTop: 16,
     flexDirection: 'row',
@@ -153,30 +155,21 @@ const styles = StyleSheet.create({
   },
   backlogTitle: {
     fontSize: 14,
-    color: '#f59e0b',
+    color: colors.accent,
     fontWeight: '600',
   },
   backlogSubtitle: {
     fontSize: 12,
-    color: '#6b7280',
+    color: colors.textTertiary,
     marginTop: 2,
   },
   backlogHours: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fbbf24',
+    color: semantic.warning.dark,
   },
   logoutButton: {
-    backgroundColor: '#dc2626',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
     marginTop: 24,
     marginBottom: 40,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import type { Game } from '../types';
 import { imageProxyUrl } from '../services/api';
+import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
 
 interface Props {
   game: Game;
@@ -13,24 +15,24 @@ interface Props {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 8,
+    borderRadius: radius.xs,
     overflow: 'hidden',
-    backgroundColor: '#1f2937',
+    backgroundColor: colors.cardBg,
   },
   placeholder: {
-    backgroundColor: '#374151',
+    backgroundColor: colors.surfaceAlt,
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 11,
   },
   ownedBadge: {
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: '#10b981',
+    backgroundColor: colors.success,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -44,7 +46,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: '#059669',
+    backgroundColor: colors.primary,
     width: 22,
     height: 22,
     borderRadius: 11,
@@ -64,7 +66,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.text,
   },
 });
 

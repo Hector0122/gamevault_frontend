@@ -1,7 +1,9 @@
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme/colors';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -21,6 +23,14 @@ export type LibraryStackParamList = {
   GameDetail: { game: Game; ownedIds?: number[]; userGame?: UserGame };
 };
 
+const detailHeaderOptions = {
+  headerShown: true,
+  headerTitle: 'Detalle',
+  headerStyle: { backgroundColor: colors.cardBg },
+  headerTintColor: colors.primary,
+  headerTitleStyle: { color: colors.text },
+};
+
 const SearchStackNav = createNativeStackNavigator<SearchStackParamList>();
 
 function SearchStack() {
@@ -30,13 +40,7 @@ function SearchStack() {
       <SearchStackNav.Screen
         name="GameDetail"
         component={GameDetailScreen}
-        options={{
-          headerShown: true,
-          headerTitle: 'Detalle',
-          headerStyle: { backgroundColor: '#111827' },
-          headerTintColor: '#34d399',
-          headerTitleStyle: { color: '#fff' },
-        }}
+        options={detailHeaderOptions}
       />
     </SearchStackNav.Navigator>
   );
@@ -51,32 +55,13 @@ function LibraryStack() {
       <LibraryStackNav.Screen
         name="GameDetail"
         component={GameDetailScreen}
-        options={{
-          headerShown: true,
-          headerTitle: 'Detalle',
-          headerStyle: { backgroundColor: '#111827' },
-          headerTintColor: '#34d399',
-          headerTitleStyle: { color: '#fff' },
-        }}
+        options={detailHeaderOptions}
       />
     </LibraryStackNav.Navigator>
   );
 }
 
 const Tab = createBottomTabNavigator();
-
-function TabIcon({ label, focused }: { label: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    Buscar: '🔍',
-    Biblioteca: '🎮',
-    Ofertas: '🏷️',
-  };
-  return (
-    <Text style={focused ? styles.tabIconActive : styles.tabIconInactive}>
-      {icons[label] ?? '📦'}
-    </Text>
-  );
-}
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -85,16 +70,16 @@ export type RootStackParamList = {
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
-function renderLibraryIcon({ focused }: { focused: boolean }) {
-  return <TabIcon label="Biblioteca" focused={focused} />;
+function renderLibraryIcon({ color, size }: { color: string; size: number }) {
+  return <Icon name="gamepad-variant-outline" size={size} color={color} />;
 }
 
-function renderSearchIcon({ focused }: { focused: boolean }) {
-  return <TabIcon label="Buscar" focused={focused} />;
+function renderSearchIcon({ color, size }: { color: string; size: number }) {
+  return <Icon name="magnify" size={size} color={color} />;
 }
 
-function renderOfertasIcon({ focused }: { focused: boolean }) {
-  return <TabIcon label="Ofertas" focused={focused} />;
+function renderOfertasIcon({ color, size }: { color: string; size: number }) {
+  return <Icon name="tag-outline" size={size} color={color} />;
 }
 
 function MainTabs() {
@@ -103,12 +88,12 @@ function MainTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#111827',
-          borderTopColor: '#1f2937',
+          backgroundColor: colors.cardBg,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
         },
-        tabBarActiveTintColor: '#34d399',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
       }}
     >
       <Tab.Screen
@@ -146,7 +131,7 @@ export default function AppNavigator() {
 
   if (loading) {
     return (
-      <ActivityIndicator size="large" color="#10b981" style={styles.activity} />
+      <ActivityIndicator size="large" color={colors.primary} style={styles.activity} />
     );
   }
 
@@ -167,9 +152,9 @@ export default function AppNavigator() {
         options={{
           headerShown: true,
           headerTitle: 'Dashboard',
-          headerStyle: { backgroundColor: '#111827' },
-          headerTintColor: '#34d399',
-          headerTitleStyle: { color: '#fff' },
+          headerStyle: { backgroundColor: colors.cardBg },
+          headerTintColor: colors.primary,
+          headerTitleStyle: { color: colors.text },
         }}
       />
     </RootStack.Navigator>
@@ -177,16 +162,8 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  tabIconActive: {
-    fontSize: 20,
-    opacity: 1,
-  },
-  tabIconInactive: {
-    fontSize: 20,
-    opacity: 0.5,
-  },
   activity: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
   },
 });

@@ -1,71 +1,63 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme/colors';
+import { radius } from '../theme/tokens';
+import Button from '../components/Button';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.background,
     paddingHorizontal: 24,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#34d399',
+    color: colors.primary,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9ca3af',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
   emailInput: {
-    backgroundColor: '#111827',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: '#fff',
+    color: colors.text,
     fontSize: 16,
     marginBottom: 12,
   },
   passwordInput: {
-    backgroundColor: '#111827',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.xs,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: '#fff',
+    color: colors.text,
     fontSize: 16,
     marginBottom: 24,
   },
-  registerButton: {
-    backgroundColor: '#059669',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   loginLinkContainer: {
     alignItems: 'center',
+    marginTop: 16,
   },
   loginPromptText: {
-    color: '#6b7280',
+    color: colors.textTertiary,
     fontSize: 14,
   },
   loginLinkText: {
-    color: '#34d399',
+    color: colors.primary,
   },
 });
 
@@ -107,7 +99,7 @@ export default function RegisterScreen({ navigation }: any) {
       <TextInput
         style={styles.emailInput}
         placeholder="Email"
-        placeholderTextColor="#6b7280"
+        placeholderTextColor={colors.textTertiary}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -117,23 +109,13 @@ export default function RegisterScreen({ navigation }: any) {
       <TextInput
         style={styles.passwordInput}
         placeholder="Contraseña (mín. 6 caracteres)"
-        placeholderTextColor="#6b7280"
+        placeholderTextColor={colors.textTertiary}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
-      <TouchableOpacity
-        onPress={handleRegister}
-        disabled={loading}
-        style={styles.registerButton}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Crear cuenta</Text>
-        )}
-      </TouchableOpacity>
+      <Button title="Crear cuenta" onPress={handleRegister} loading={loading} />
 
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.loginLinkContainer}>
         <Text style={styles.loginPromptText}>
