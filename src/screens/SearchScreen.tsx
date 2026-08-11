@@ -9,7 +9,7 @@ import { useSearch, useLibrary } from '../hooks/useGames';
 import GameCard from '../components/GameCard';
 import StatusSelectorModal from '../components/StatusSelectorModal';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { radius, iconSize } from '../theme/tokens';
 import type { SearchStackParamList } from '../navigation/AppNavigator';
 import type { Game, GameStatus, IGDBGameResult } from '../types';
 
@@ -138,7 +138,7 @@ export default function SearchScreen() {
           Buscar Juegos
         </Text>
         <TouchableOpacity onPress={() => (navigation as any).navigate('Dashboard')}>
-          <Icon name="account-circle-outline" size={22} color={colors.primary} />
+          <Icon name="account-circle-outline" size={iconSize.md} color={colors.primary} />
         </TouchableOpacity>
       </View>
 

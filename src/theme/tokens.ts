@@ -93,6 +93,21 @@ export const radius = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Tamaño de icono — mismo problema que los radios: sin una escala, cada
+// pantalla mete un número a ojo (13, 16, 18, 20, 22...) y el resultado son
+// iconos que se ven "chiquitos" al lado de texto normal en unas pantallas
+// y bien en otras. `md` (22) es el default para casi todo — tab bars,
+// headers, botones de acción; usa `sm` solo para iconos realmente
+// secundarios/inline, nunca por debajo de eso.
+// ---------------------------------------------------------------------------
+export const iconSize = {
+  sm: 18, // secundario / inline junto a texto pequeño (badges, chips)
+  md: 22, // default — tabs, headers, botones de acción, la mayoría de los casos
+  lg: 28, // avatares chicos, iconos destacados de una card
+  xl: 48, // empty states / hero
+} as const;
+
+// ---------------------------------------------------------------------------
 // Elevación / sombra (RN: shadow* + elevation para Android)
 // ---------------------------------------------------------------------------
 export const elevation = {

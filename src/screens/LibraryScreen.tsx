@@ -22,7 +22,7 @@ import type { GameStatus, Priority, UserGame } from '../types';
 import { imageProxyUrl, exportUrl } from '../services/api';
 import type { LibraryStackParamList } from '../navigation/AppNavigator';
 import { colors, statusDotColors } from '../theme/colors';
-import { hues, radius } from '../theme/tokens';
+import { hues, radius, iconSize } from '../theme/tokens';
 
 type LibraryNav = NativeStackNavigationProp<
   LibraryStackParamList,
@@ -313,7 +313,7 @@ export default function LibraryScreen() {
                 }
                 style={styles.deleteButton}
               >
-                <Icon name="delete-outline" size={16} color={colors.danger} />
+                <Icon name="delete-outline" size={iconSize.sm} color={colors.danger} />
               </TouchableOpacity>
             </View>
 
@@ -472,12 +472,12 @@ export default function LibraryScreen() {
               Linking.openURL(url);
             }}
           >
-            <Icon name="file-export-outline" size={18} color={colors.primary} />
+            <Icon name="file-export-outline" size={iconSize.md} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => (navigation as any).navigate('Dashboard')}
           >
-            <Icon name="account-circle-outline" size={20} color={colors.primary} />
+            <Icon name="account-circle-outline" size={iconSize.md} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>

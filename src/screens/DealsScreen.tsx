@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDeals } from '../hooks/useGames';
 import { imageProxyUrl } from '../services/api';
 import { colors } from '../theme/colors';
-import { hexToRgba, radius } from '../theme/tokens';
+import { hexToRgba, radius, iconSize } from '../theme/tokens';
 import Button from '../components/Button';
 import type { DealRecommendation, WishlistDeal } from '../types';
 
@@ -77,7 +77,7 @@ export default function DealsScreen() {
             {item.deal ? (
               <View style={styles.dealBadge}>
                 <View style={styles.dealRow}>
-                  <Icon name="fire" size={13} color={colors.accent} />
+                  <Icon name="fire" size={iconSize.sm} color={colors.accent} />
                   <Text style={styles.discountText}>
                     {item.deal.discount}% OFF
                   </Text>
@@ -126,7 +126,7 @@ export default function DealsScreen() {
             {item.currentPrice != null && item.regularPrice != null && (
               <View style={styles.dealBadge}>
                 <View style={styles.dealRow}>
-                  <Icon name="fire" size={13} color={colors.accent} />
+                  <Icon name="fire" size={iconSize.sm} color={colors.accent} />
                   <Text style={styles.discountText}>
                     {item.discount}% OFF
                   </Text>
