@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
-import { radius } from '../theme/tokens';
+import { radius, fontFamily } from '../theme/tokens';
 import Button from '../components/Button';
 
 const styles = StyleSheet.create({
@@ -14,8 +14,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   title: {
+    fontFamily: fontFamily.display,
     fontSize: 28,
-    fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
     marginBottom: 8,

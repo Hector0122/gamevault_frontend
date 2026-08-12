@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
+import { fontFamily } from '../theme/tokens';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -28,7 +29,7 @@ const detailHeaderOptions = {
   headerTitle: 'Detalle',
   headerStyle: { backgroundColor: colors.cardBg },
   headerTintColor: colors.primary,
-  headerTitleStyle: { color: colors.text },
+  headerTitleStyle: { color: colors.text, fontFamily: fontFamily.mono, fontSize: 17 },
 };
 
 const SearchStackNav = createNativeStackNavigator<SearchStackParamList>();
@@ -154,7 +155,7 @@ export default function AppNavigator() {
           headerTitle: 'Dashboard',
           headerStyle: { backgroundColor: colors.cardBg },
           headerTintColor: colors.primary,
-          headerTitleStyle: { color: colors.text },
+          headerTitleStyle: { color: colors.text, fontFamily: fontFamily.mono, fontSize: 17 },
         }}
       />
     </RootStack.Navigator>
