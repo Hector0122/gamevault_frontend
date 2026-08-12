@@ -5,7 +5,7 @@ import type { GameStatus } from '../types';
  * VaultGaming es solo-oscuro por diseño (no hay toggle de tema hoy), así
  * que se exporta directo el lado `dark` del theme compartido en vez de un
  * ThemeContext completo como el de Varo. `primary`/`accent` vienen de
- * `brands.vaultgaming` en brand-kit/tokens.ts — ver README.md#colores-por-app.
+ * `brands.vaultgaming` en arcd_kit/tokens.ts — ver README.md#colores-por-app.
  */
 export const colors = createAppTheme(brands.vaultgaming).dark;
 
@@ -18,7 +18,7 @@ export const colors = createAppTheme(brands.vaultgaming).dark;
  * Un mismo juego "Deseado" se veía de dos colores distintos según la
  * pantalla. Se estandarizó al mapeo del selector (coincide con lo ya
  * documentado en CLAUDE.md) y ahora cada estado referencia un `hue`
- * canónico del brand-kit — ninguno es nuevo.
+ * canónico del arcd_kit — ninguno es nuevo.
  */
 export const statusColors: Record<GameStatus, { bg: string; text: string; label: string }> = {
   WISHLIST: { bg: hexToRgba(hues.amber, 0.18), text: semantic.warning.dark, label: 'Deseado' },

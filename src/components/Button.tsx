@@ -22,10 +22,10 @@ interface Props {
 /**
  * Botón estándar — mismo componente (mismo radio, misma curva de esquina)
  * que el de Varo. VaultGaming es solo-oscuro, así que lee `colors` estático
- * en vez de un `useTheme()`. Ver brand-kit/README.md#botones.
+ * en vez de un `useTheme()`. Ver arcd_kit/README.md#botones.
  *
  * Feedback de tap: scale con `motion.spring.press` (Reanimated) — mismo
- * spring en las 6 apps, ver brand-kit/README.md#motion.
+ * spring en las 6 apps, ver arcd_kit/README.md#motion.
  */
 export default function Button({ title, onPress, disabled, loading, variant = 'primary', style }: Props) {
   const scale = useSharedValue(1);
