@@ -9,9 +9,27 @@ import type {
 const API_BASE = 'https://gamevaultserver-production.up.railway.app/api';
 
 let authToken: string | null = null;
+let refreshTokenValue: string | null = null;
+// AuthContext se suscribe para persistir el par rotado en Keychain y para
+// cerrar sesión cuando el refresh token también expiró/fue revocado.
+let onTokensRefreshed: ((token: string, refreshToken: string) => void) | null = null;
+let onSessionExpired: (() => void) | null = null;
 
 export function setToken(token: string | null) {
   authToken = token;
+}
+
+export function setTokens(token: string | null, refreshToken: string | null) {
+  authToken = token;
+  refreshTokenValue = refreshToken;
+}
+
+export function setAuthCallbacks(callbacks: {
+  onTokensRefreshed: (token: string, refreshToken: string) => void;
+  onSessionExpired: () => void;
+}) {
+  onTokensRefreshed = callbacks.onTokensRefreshed;
+  onSessionExpired = callbacks.onSessionExpired;
 }
 
 // Distingue "no hay conexión / el fetch ni llegó al servidor" de un error
@@ -19,7 +37,41 @@ export function setToken(token: string | null) {
 // sentido reintentar más tarde desde una cola de sincronización offline.
 export class NetworkError extends Error {}
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
+let refreshInFlight: Promise<boolean> | null = null;
+
+// Único punto que llama a /auth/refresh; de-duplicado entre requests
+// concurrentes que fallan con 401 al mismo tiempo.
+async function refreshSession(): Promise<boolean> {
+  if (!refreshTokenValue) return false;
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: refreshTokenValue }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        authToken = data.token;
+        refreshTokenValue = data.refreshToken;
+        onTokensRefreshed?.(data.token, data.refreshToken);
+        return true;
+      } catch {
+        return false;
+      } finally {
+        refreshInFlight = null;
+      }
+    })();
+  }
+  return refreshInFlight;
+}
+
+async function request<T>(
+  url: string,
+  options?: RequestInit,
+  _retried = false,
+): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -36,6 +88,12 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     );
   }
 
+  if (res.status === 401 && !_retried && refreshTokenValue) {
+    const refreshed = await refreshSession();
+    if (refreshed) return request<T>(url, options, true);
+    onSessionExpired?.();
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error);
@@ -44,24 +102,28 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // Auth
+type AuthResponse = {
+  token: string;
+  refreshToken: string;
+  user: { id: string; email: string };
+};
+
 export function login(email: string, password: string) {
-  return request<{ token: string; user: { id: string; email: string } }>(
-    '/auth/login',
-    {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    },
-  );
+  return request<AuthResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
 }
 
 export function register(email: string, password: string) {
-  return request<{ token: string; user: { id: string; email: string } }>(
-    '/auth/register',
-    {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    },
-  );
+  return request<AuthResponse>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function logout() {
+  return request<{ success: boolean }>('/auth/logout', { method: 'POST' });
 }
 
 // Games
