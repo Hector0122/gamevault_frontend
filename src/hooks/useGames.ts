@@ -46,6 +46,11 @@ export function useSearch() {
   const [error, setError] = useState<string | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [ownedIds, setOwnedIds] = useState<number[]>([]);
+  // Identifica la búsqueda más reciente para poder descartar respuestas que
+  // lleguen fuera de orden (ej. el usuario busca "mario", luego "zelda"
+  // antes de que la primera responda) — sin esto la respuesta que llegue
+  // último "gana" sin importar a qué query corresponde.
+  const searchTokenRef = useRef(0);
 
   async function fetchOwnedIds() {
     try {
@@ -56,6 +61,7 @@ export function useSearch() {
 
   async function search(query: string) {
     if (!query.trim()) return;
+    const token = ++searchTokenRef.current;
     setCurrentQuery(query);
     setResults([]);
     setLoading(true);
@@ -65,23 +71,27 @@ export function useSearch() {
         api.searchGames(query, 0),
         ownedIds.length === 0 ? fetchOwnedIds() : Promise.resolve(),
       ]);
+      if (token !== searchTokenRef.current) return;
       setResults(data);
     } catch (err) {
+      if (token !== searchTokenRef.current) return;
       setError(err instanceof Error ? err.message : 'Error searching games');
     } finally {
-      setLoading(false);
+      if (token === searchTokenRef.current) setLoading(false);
     }
   }
 
   async function loadMore() {
     if (loadingMore || loading || !currentQuery) return;
+    const token = searchTokenRef.current;
     setLoadingMore(true);
     try {
       const data = await api.searchGames(currentQuery, results.length);
+      if (token !== searchTokenRef.current) return;
       setResults(prev => [...prev, ...data]);
     } catch {
     } finally {
-      setLoadingMore(false);
+      if (token === searchTokenRef.current) setLoadingMore(false);
     }
   }
 
@@ -121,6 +131,20 @@ export function useLibrary() {
   const [pendingMutationCount, setPendingMutationCount] = useState(() =>
     getPendingMutationCount(),
   );
+  // Opciones de filtro de plataforma/género: vienen de un endpoint aparte
+  // que cubre TODA la biblioteca del usuario, no solo `games` (que es la
+  // página cargada) — si no, con más de PAGE_LIMIT juegos o con filtros ya
+  // aplicados faltaban opciones o se iban encogiendo.
+  const [platformOptions, setPlatformOptions] = useState<string[]>([]);
+  const [genreOptions, setGenreOptions] = useState<string[]>([]);
+
+  const fetchFacets = useCallback(async () => {
+    try {
+      const data = await api.getFacets();
+      setPlatformOptions(data.platforms);
+      setGenreOptions(data.genres);
+    } catch {}
+  }, []);
 
   const nextPageRef = useRef(1);
   const fetchingRef = useRef(false);
@@ -148,6 +172,7 @@ export function useLibrary() {
         setLoading(true);
         setGames([]);
         nextPageRef.current = 1;
+        fetchFacets();
         // Si recuperamos señal, manda primero los cambios pendientes para
         // que la biblioteca que se recarga ya los refleje.
         const { remaining } = await flushMutationQueue().catch(() => ({
@@ -189,7 +214,7 @@ export function useLibrary() {
         fetchingRef.current = false;
       }
     },
-    [buildParams, searchQuery, statusFilter, platformFilter, genreFilter],
+    [buildParams, searchQuery, statusFilter, platformFilter, genreFilter, fetchFacets],
   );
 
   const loadMore = useCallback(() => {
@@ -348,6 +373,9 @@ export function useLibrary() {
     libraryTotalCount,
     libraryTotalCountInitialized,
     pendingMutationCount,
+    platformOptions,
+    genreOptions,
+    fetchFacets,
   };
 }
 

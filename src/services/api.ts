@@ -213,6 +213,10 @@ export function getUserGameIds() {
   return request<{ ids: number[] }>('/games/ids');
 }
 
+export function getFacets() {
+  return request<{ platforms: string[]; genres: string[] }>('/games/facets');
+}
+
 export function removeGame(gameId: string) {
   return request<{ success: boolean }>(`/games/${gameId}`, {
     method: 'DELETE',

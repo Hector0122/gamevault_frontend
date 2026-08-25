@@ -118,6 +118,8 @@ export default function LibraryScreen() {
     setGenreFilter,
     sortKey,
     setSortKey,
+    platformOptions,
+    genreOptions,
   } = useLibrary();
 
   const [showFilters, setShowFilters] = useState(false);
@@ -146,17 +148,28 @@ export default function LibraryScreen() {
     prevHasActiveFilters.current = hasActiveFilters;
   }, [hasActiveFilters, fetchLibrary]);
 
-  const platforms = useMemo(() => {
-    const set = new Set<string>();
-    games.forEach(g => g.game.platforms.forEach(p => set.add(p)));
-    return Array.from(set).sort();
-  }, [games]);
+  // Tocar un chip de status/plataforma/género o cambiar el orden solo movía
+  // el estado local — la lista no se volvía a pedir al servidor hasta que el
+  // usuario le diera manualmente a "Buscar" o hiciera pull-to-refresh. Este
+  // efecto dispara el refetch apenas cambia alguno de esos filtros (se salta
+  // el primer render porque el focus effect de abajo ya carga la biblioteca
+  // inicial). El texto de búsqueda queda fuera a propósito: dispararlo en
+  // cada tecleo saturaría de requests.
+  const isFirstFilterRun = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterRun.current) {
+      isFirstFilterRun.current = false;
+      return;
+    }
+    fetchLibraryRef.current(true);
+  }, [statusFilter, platformFilter, genreFilter, sortKey]);
 
-  const genres = useMemo(() => {
-    const set = new Set<string>();
-    games.forEach(g => g.game.genres.forEach(gn => set.add(gn)));
-    return Array.from(set).sort();
-  }, [games]);
+  // Las opciones de plataforma/género vienen de `useLibrary` (endpoint de
+  // facets sobre toda la biblioteca) en vez de derivarse de `games` — ese
+  // era solo la página cargada, así que con más de PAGE_LIMIT juegos (o con
+  // un filtro ya aplicado) faltaban opciones.
+  const platforms = platformOptions;
+  const genres = genreOptions;
 
   const activeFilterCount = useMemo(
     () => [statusFilter, platformFilter, genreFilter].filter(Boolean).length,
