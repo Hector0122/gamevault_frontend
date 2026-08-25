@@ -1,4 +1,4 @@
-# GameVault
+# GameVault 🎮
 
 App de backlog de videojuegos para Android: qué tienes, qué quieres, y cuándo comprarlo más barato.
 
