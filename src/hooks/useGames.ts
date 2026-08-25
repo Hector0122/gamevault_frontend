@@ -431,9 +431,15 @@ export function useDeals() {
 
           setGenerating(false);
           setRecommendations(data.recommendations ?? []);
-          setMessage(data.message ?? null);
+          // "error" y "message" son mutuamente excluyentes: antes se
+          // setteaban ambos al mismo texto cuando status === 'error', y
+          // como DealsScreen renderiza el error (rojo) Y el message (azul)
+          // en bloques separados, se veían duplicados en pantalla.
           if (data.status === 'error') {
+            setMessage(null);
             setError(data.message ?? 'No se pudieron generar recomendaciones');
+          } else {
+            setMessage(data.message ?? null);
           }
         })
         .catch(err => {
